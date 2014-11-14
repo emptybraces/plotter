@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+	<title>
+	plotter
+	</title>
+	<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/3.17.2/build/cssreset/cssreset-min.css" />
+	<link rel="stylesheet" type="text/css" href="https://code.jquery.com/ui/1.11.1/themes/ui-darkness/jquery-ui.css" />
+	<link rel="stylesheet" type="text/css" href="main.css" />
+	<link rel="stylesheet" type="text/css" href="library/jquery_plugins_contextmenu/jquery.contextMenu.css" />
+	<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+	<script type="text/javascript" src="https://code.jquery.com/ui/1.11.1/jquery-ui.min.js"></script>
+	<script type="text/javascript" src="library/jquery_plugins_contextmenu/jquery.ui.position.js" ></script>
+	<script type="text/javascript" src="library/jquery_plugins_contextmenu/jquery.contextMenu.js" ></script>
+	<script type="text/javascript" src="library/gl-matrix-min.js" ></script>
+	<script type="text/javascript" src="util/Util.js"></script>
+	<script type="text/javascript" src="util/Loader.js"></script>
+	<script type="text/javascript" src="util/LibraryAdapter.js"></script>
+	<script type="text/javascript" src="util/Polygon.js"></script>
+	<script type="text/javascript" src="util/Plane.js"></script>
+	<script type="text/javascript" src="util/Intersect.js"></script>
+	<script type="text/javascript" src="util/Parser.js"></script>
+	<script type="text/javascript" src="Global.js"></script>
+	<script type="text/javascript" src="object/ObjectBase.js"></script>
+	<script type="text/javascript" src="object/EmptyObject.js"></script>
+	<script type="text/javascript" src="object/GLBuffer.js"></script>
+	<script type="text/javascript" src="object/GeometryObject.js"></script>
+	<script type="text/javascript" src="object/Geometry.js"></script>
+	<script type="text/javascript" src="object/ModelParts.js"></script>
+	<script type="text/javascript" src="object/Model.js"></script>
+	<script type="text/javascript" src="object/LoopProcess.js"></script>
+	<script type="text/javascript" src="object/Square.js"></script>
+	<script type="text/javascript" src="object/Sphere.js"></script>
+	<script type="text/javascript" src="object/Point.js"></script>
+	<script type="text/javascript" src="object/GridLine.js"></script>
+	<script type="text/javascript" src="object/Line.js"></script>
+	<script type="text/javascript" src="object/Camera.js"></script>
+	<script type="text/javascript" src="object/MouseState.js"></script>
+	<script type="text/javascript" src="object/ObjectMoveRange.js"></script>
+	<script type="text/javascript" src="object/ObjectList.js"></script>
+	<script type="text/javascript" src="shader/Shader.js"></script>
+	<script type="text/javascript" src="shader/ShaderBoundary.js"></script>
+	<script type="text/javascript" src="shader/ShaderObject.js"></script>
+	<script type="text/javascript" src="shader/ShaderLine.js"></script>
+	<script type="text/javascript" src="shader/ShaderPoint.js"></script>
+	<script type="text/javascript" src="EventHandler.js"></script>
+	<script type="text/javascript" src="ContextMenu.js"></script>
+	<script type="text/javascript" src="main.js"></script>
+	<!-- vertex shader -->
+	<script id="vs_point" type="x-shader/x-vertex">
+		attribute vec3  position;
+		attribute vec4  color;
+		uniform   mat4  mvpMatrix;
+		uniform   float pointSize;
+		uniform   vec4  objectColor;
+		uniform   int   isObjectPicking;
+		varying   vec4  vColor;
+		void main(void){
+			if (bool(isObjectPicking)) {
+				vColor = objectColor;
+			} else {
+				vColor = color;
+			}
+		    gl_Position  = mvpMatrix * vec4(position, 1.0);
+		    gl_PointSize = pointSize;
+		}
+	</script>
+	<script id="vs_line" type="x-shader/x-vertex">
+		attribute vec3  position;
+		attribute vec4  color;
+		uniform   mat4  mvpMatrix;
+		varying   vec4  vColor;
+		void main(void){
+			vColor = color;
+		    gl_Position  = mvpMatrix * vec4(position, 1.0);
+		}
+	</script>
+	<script id="vs_obj" type="x-shader/x-vertex">
+		attribute vec3 position;
+		attribute vec3 normal;
+		attribute vec4 color;
+		uniform mat4 mvpMatrix;
+		uniform vec4 objectColor;
+		uniform int isObjectPicking;
+		varying vec3 vNormal;
+		varying vec4 vColor;
+		void main(void){
+			vNormal 	= normal;
+			if (bool(isObjectPicking)) {
+				vColor = objectColor;
+			} else {
+				vColor = color;
+			}
+			gl_Position = mvpMatrix * vec4(position, 1.0);
+		}
+	</script>
+	<script id="vs_objtex" type="x-shader/x-vertex">
+		attribute vec3 position;
+		attribute vec3 normal;
+		attribute vec4 color;
+		attribute vec2 textureCoord;
+		uniform mat4 mvpMatrix;
+		varying vec3 vNormal;
+		varying vec4 vColor;
+		varying vec2 vTextureCoord;
+		void main(void){
+			vNormal 	  = normal;
+			vColor        = color;
+			vTextureCoord = textureCoord;
+			gl_Position   = mvpMatrix * vec4(position, 1.0);
+		}
+	</script>
+	<script id="vs_boundary" type="x-shader/x-vertex">
+		attribute vec3 position;
+		uniform mat4 mvpMatrix;
+		uniform vec4 objectColor;
+		varying vec4 vColor;
+		void main(void){
+			vColor = objectColor;
+			gl_Position = mvpMatrix * vec4(position, 1.0);
+		}
+	</script>
+	<!-- flagment shader -->
+	<script id="fs_obj" type="x-shader/x-fragment">
+		precision mediump float;
+		uniform vec3 lightDirection;
+		uniform vec4 ambientColor;
+		uniform int isUseLight;
+		varying vec3 vNormal;
+		varying vec4 vColor;
+		void main(void){
+			if (bool(isUseLight)) {
+				float diffuse = clamp(dot(vNormal, -lightDirection), 0.2, 1.0);
+				gl_FragColor = vColor * vec4(vec3(diffuse), 1.0) + ambientColor;
+			} else {
+				gl_FragColor = vColor;
+			}
+		}
+	</script>
+	<script id="fs_objtex" type="x-shader/x-fragment">
+		precision mediump float;
+		uniform vec3 lightDirection;
+		uniform vec4 ambientColor;
+		uniform int isUseLight;
+		uniform sampler2D uSampler;
+		varying vec3 vNormal;
+		varying vec4 vColor;
+		varying vec2 vTextureCoord;
+		void main(void){
+			if (bool(isUseLight)) {
+				float diffuse = clamp(dot(vNormal, -lightDirection), 0.2, 1.0);
+				vec4 tex_color = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+				gl_FragColor = tex_color * vColor * vec4(vec3(diffuse), 1.0) + ambientColor;
+			} else {
+				gl_FragColor = vColor;
+			}
+		}
+	</script>
+	<script id="fs_simple" type="x-shader/x-fragment">
+		precision mediump float;
+		varying vec4 vColor;
+		void main(void){
+		    gl_FragColor = vColor;
+		}
+	</script>
+
+</head>
+
+<body>
+
+	<div id="contents">
+
+		<!-- canvas area -->
+		<div id="canvas_area">
+			<canvas id="canvas" width = "640" height = "480" oncontextmenu="return false;"></canvas>
+		</div>
+		<!-- end canvas area -->
+
+		<!-- option area -->
+		<div id="option_area">
+			<!-- object_paramger -->
+			<div id="object_parameter">
+				<p>Object Parameter</p>
+
+				<div id="object_position">
+					<p>Position</p>
+					<table class="custom_table">
+						<tr>
+							<td>X</td>
+							<td><input type="text" id="object_position_x_tb" class="object_position_tb" maxlength="6" disabled="disabled" ></td>
+							<td><div id="object_position_x_value" class="object_value">0.0000</div></td>						
+						</tr>
+						<tr>
+							<td>Y</td>
+							<td><input type="text" id="object_position_y_tb" class="object_position_tb" maxlength="6" disabled="disabled" ></td>
+							<td><div id="object_position_y_value" class="object_value">0.0000</div></td>						
+						</tr>
+						<tr>
+							<td>Z</td>
+							<td><input type="text" id="object_position_z_tb" class="object_position_tb" maxlength="6" disabled="disabled" ></td>
+							<td><div id="object_position_z_value" class="object_value">0.0000</div></td>						
+						</tr>
+					</table>
+				</div>
+
+				<div id="object_color">
+					<p>Color</p>
+					<table class="custom_table">
+						<tr>
+							<td>R</td>
+							<td><input type="text" id="object_color_r_tb" class="object_color_tb" maxlength="3" disabled="disabled" ></td>
+							<td><div id="object_color_r_value" class="object_value">0</div></td>						
+						</tr>
+						<tr>
+							<td>G</td>
+							<td><input type="text" id="object_color_g_tb" class="object_color_tb" maxlength="3" disabled="disabled" ></td>
+							<td><div id="object_color_g_value" class="object_value">0</div></td>						
+						</tr>
+						<tr>
+							<td>B</td>
+							<td><input type="text" id="object_color_b_tb" class="object_color_tb" maxlength="3" disabled="disabled" ></td>
+							<td><div id="object_color_b_value" class="object_value">0</div></td>						
+						</tr>
+						<tr>
+							<td>A</td>
+							<td><input type="text" id="object_color_a_tb" class="object_alpha_tb" maxlength="3" disabled="disabled" ></td>
+							<td><div id="object_color_a_value" class="object_value">0.0</div></td>						
+						</tr>
+					</table>
+				</div>
+				<div id="object_scale">
+					<p>Scale</p>
+					<table class="custom_table">
+						<tr>
+							<td>X</td>
+							<td><input type="text" id="object_scale_x_tb" class="object_scale_tb" maxlength="5" disabled="disabled" ></td>
+							<td><div id="object_scale_x_value" class="object_value">0.000</div></td>						
+						</tr>
+						<tr>
+							<td>Y</td>
+							<td><input type="text" id="object_scale_y_tb" class="object_scale_tb" maxlength="5" disabled="disabled" ></td>
+							<td><div id="object_scale_y_value" class="object_value">0.000</div></td>						
+						</tr>
+						<tr>
+							<td>Z</td>
+							<td><input type="text" id="object_scale_z_tb" class="object_scale_tb" maxlength="5" disabled="disabled" ></td>
+							<td><div id="object_scale_z_value" class="object_value">0.000</div></td>						
+						</tr>
+					</table>
+				</div>
+			</div> 
+			<!-- end object_paramger -->
+
+			<!-- enbironment paramter -->
+			<div id="environment_parameter">
+				<p>Environment Parameter</p>
+				<div id="environment_axisline">
+					<p>Axis Line</p>
+					<table class="custom_table">
+						<tr>
+							<td>X</td>
+							<td><input type="checkbox" id="env_axisline_x_cb" checked="checked"></td>
+						</tr>
+						<tr>
+							<td>Y</td>
+							<td><input type="checkbox" id="env_axisline_y_cb" checked="checked"></td>
+						</tr>
+						<tr>
+							<td>Z</td>
+							<td><input type="checkbox" id="env_axisline_z_cb" checked="checked"></td>
+						</tr>
+						<tr>
+							<td>length</td>
+							<td><input type="text" id="env_axisline_length_tb" maxlength="5" value="40.0"></td>
+							<td><div id="env_axisline_length_value">40.0</div></td>						
+						</tr>
+					</table>
+				</div>
+				<div id="environment_gridline">
+					<p>Grid Line</p>
+					<table class="custom_table">
+						<tr>
+							<td>enable</td>
+							<td><input type="checkbox" id="env_gridline_cb" checked="checked"></td>
+						</tr>
+						<tr>
+							<td>interval</td>
+							<td><input type="text" id="env_gridline_interval_tb" maxlength="5" value="5.0"></td>
+							<td><div id="env_gridline_interval_value">5.0</div></td>						
+						</tr>
+						<tr>
+							<td>length</td>
+							<td><input type="text" id="env_gridline_length_tb" maxlength="5" value="40.0"></td>
+							<td><div id="env_gridline_length_value">40.0</div></td>						
+						</tr>
+					</table>
+				</div>
+				<div id="environment_camera">
+					<p>Camera Parameter</p>
+					<table class="custom_table">
+						<tr>
+							<td>fovy</td>
+							<td><input type="text" id="env_camera_fovy_tb" maxlength="5" value="45.0"></td>
+							<td><div id="env_camera_fovy_value">45.0</div></td>						
+						</tr>
+						<tr>
+							<td>nearclip</td>
+							<td><input type="text" id="env_camera_nearclip_tb" maxlength="5" value="0.1"></td>
+							<td><div id="env_camera_nearclip_tb">0.1</div></td>						
+						</tr>
+						<tr>
+							<td>farclip</td>
+							<td><input type="text" id="env_camera_farclip_tb" maxlength="5" value="100.0"></td>
+							<td><div id="env_camera_farclip_tb">100.0</div></td>						
+						</tr>
+					</table>
+				</div>
+			</div>
+			<!-- end environment paramter -->
+			<div id="option_icon">
+				<div id="object_parameter_icon">
+					Object
+				</div>
+				<div id="env_parameter_icon">
+					Environment
+				</div>
+			</div>
+
+		</div>
+		<!-- end option area -->
+	</div>
+	<!-- end contents area -->
+</body>
+
+</html>

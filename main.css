@@ -1,0 +1,131 @@
+*{
+	margin: 0;
+	padding: 0;
+}
+
+html,body {
+    height: 100%;
+    min-height: 100%;
+    background-color: #111111;
+	overflow: hidden;
+}
+
+#contents {
+	width: 100%;
+	height: 100%;
+	-moz-user-select: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+}
+
+/*.centering_table {
+    display: table;
+    //margin: 0 auto;
+	width: 80%;
+    height: 100%;
+    border: 3px solid green;
+}
+ 
+.centering {
+    display: table-cell;
+    text-align: center;
+    vertical-align: middle;
+    border: 3px solid blue;
+}
+ 
+.centering_target {
+    display: inline-block;
+    width: 640px;
+    height: 480px;
+}
+*/
+#canvas {
+    width: 640px;
+    height: 480px;
+    cursor: move;
+}
+#canvas_area {
+	/*border: 3px solid blue;*/
+	height: 100%;
+	width: 100%;
+}
+#option_area {
+	position: fixed;
+	top: 0px;
+	right: 0px;
+	width: 250px;
+	height: 100%;
+	z-index: 100;
+	/*background: rgba(100,200,100,0.6);*/
+}
+#object_parameter {
+	position: fixed;
+	top: 0px;
+	right: 50px;
+	width: 200px;
+	height: 100%;
+	font-size: 1.2em;
+	color: #ffffff;
+	text-align: left;
+	margin-left: 8px;
+	border: 3px solid #5dd;
+	visibility: visible;
+}
+#environment_parameter {
+	position: fixed;
+	top: 0px;
+	right: 50px;
+	width: 200px;
+	height: 100%;
+	font-size: 1.2em;
+	color: #ffffff;
+	text-align: left;
+	border: 3px solid #ad5;
+	visibility: hidden;
+}
+#option_icon {
+	word-break: break-all;
+	z-index: 100;
+}
+
+#object_parameter_icon {
+	font-size: 1.6em;
+	position: fixed;
+	top: 0px;
+	right: 0px;
+	width: 50px;
+	height: 50px;
+	background-color: #5dd;
+	text-align: center;
+}
+
+#env_parameter_icon {
+	font-size: 1.1em;
+	position: fixed;
+	top: 50px;
+	right: 1px;
+	width: 50px;
+	height: 50px;
+	background-color: #ad5;
+
+}
+#env_parameter_icon:hover, #object_parameter_icon:hover {
+	cursor: default;
+}
+
+p {
+	margin-top: 20px;
+}
+.custom_table{
+	border-collapse:separate;
+	border-spacing: 15px 10px;
+}
+input[type="text"] {
+	width: 70px;
+	height: 15px;
+	font-size: 0.8em;
+	text-align: right;
+}
+input[type="text"]:disabled {
+	background-color: #999999;
+}
