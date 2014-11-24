@@ -4,7 +4,7 @@
 function Model(gl, shaderId, resourceName, option)
 {
   	// parent class
-  	ObjectBase.call(this, shaderId, false);
+  	ObjectBase.call(this, shaderId, false, option);
 
 	// loading model data
 	this.modelParts		= [];
@@ -24,7 +24,6 @@ function Model(gl, shaderId, resourceName, option)
 	// this.setColor([1.0, 1.0, 0.0, 1.0]);
 	// this.setScale([2, 2, 2]);
 	// this.setIndex(this.sphere.i);
-
 }
 // inherits class
 Util.inherits(Model, ObjectBase);

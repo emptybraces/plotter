@@ -106,13 +106,13 @@ Util.screen2World = function screen2World(
 	nearClip,
 	farClip)
 {
-	var invView = Adp.Mtx4.identity(Adp.Mtx4.create());
-	var invProj = Adp.Mtx4.identity(Adp.Mtx4.create());
-	var mat = Adp.Mtx4.identity(Adp.Mtx4.create());
+	var invView = Adp.Mtx4.identity();
+	var invProj = Adp.Mtx4.identity();
+	var mat = Adp.Mtx4.identity();
     Adp.Mtx4.invert(invView, view);
     Adp.Mtx4.invert(invProj, proj);
     Adp.Mtx4.multiply(mat, invView, invProj);
-    var out = new Float32Array(4);
+    var out = Adp.Vec4.create();
     Adp.Mtx4.multiplyVec4(out, mat, [2.0 * (x / clientWidth) - 1.0, 2.0 * (y / clientHeight) - 1.0, nearClip, farClip])
     // this.multiplyVec4(mat, [2.0 * (x / clientWidth) - 1.0, 2.0 * (y / clientHeight) - 1.0, nearClip, farClip], out);
     return [out[0] / out[3], out[1] / out[3], out[2] / out[3]];
@@ -153,9 +153,16 @@ Util.clone = function clone(obj)
 	return jQuery.extend(true, {}, obj);
 }
 
-Util.calculateNormal = function calculateNormal(vertex)
+Util.calculateNormal = function calculateNormal(vertices)
 {
-	var v = Util.convertArraySingle2Vec3(vertex);
+	switch(vertices.length) {
+		case 9: case 12:
+			var v = Util.convertArraySingle2Vec3(vertices);
+			break;
+		case 3: case 4:
+			var v = vertices;
+			break;
+	}
 	var ac = Adp.Vec3.create();
 	var cb = Adp.Vec3.create();
 	var cross = Adp.Vec3.create();

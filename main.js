@@ -1,4 +1,30 @@
-function test(){
+﻿function test(){
+    // console.log(Math.atan2(-0.5, 0.5) * Rad2Deg)
+    // console.log(Math.atan2(-0.3, 0.3) * Rad2Deg)
+    // console.log(Math.atan2(-0.0, 0.0) * Rad2Deg)
+    // console.log(Math.atan2(0.969-1, 0.003-0) * Rad2Deg)
+    // var m = Adp.Mtx4.identity();
+    // var q = Adp.Quat.identity();
+    // var out3 = Adp.Vec3.create();
+    // Adp.Quat.rotationTo(q, [0, 0, 1], [1, 0, 0]);
+    // Adp.Mtx4.fromRotationTranslation(m, q, [0, 0, 0])
+    // Adp.Mtx4.multiplyVec3(out3, m, [0, 0, 1]);
+    // console.log(out3)
+    // console.log(Adp.Vec3.rotationTo(Adp.Vec3.normalize([1, 0, 0]), Adp.Vec3.normalize([1, 1, 0])) * Rad2Deg)
+    // console.log(Adp.Vec3.rotationTo(Adp.Vec3.normalize([1, 0, 0]), Adp.Vec3.normalize([1, 10, 0])) * Rad2Deg)
+    // console.log(Adp.Vec3.rotationTo(Adp.Vec3.normalize([1, 0, 0]), Adp.Vec3.normalize([1, 20, 0])) * Rad2Deg)
+    // console.log(Adp.Vec3.rotationTo(Adp.Vec3.normalize([1, 0, 0]), Adp.Vec3.normalize([1, 30, 0])) * Rad2Deg)
+    // console.log(Adp.Vec3.rotationTo(Adp.Vec3.normalize([1, 0, 0]), Adp.Vec3.normalize([1, 40, 0])) * Rad2Deg)
+    // console.log(Adp.Vec3.rotationTo(Adp.Vec3.normalize([1, 0, 0]), Adp.Vec3.normalize([1, 50, 0])) * Rad2Deg)
+    // console.log(Adp.Vec3.rotationTo(Adp.Vec3.normalize([1, 0, 0]), Adp.Vec3.normalize([1, 60, 0])) * Rad2Deg)
+    // console.log(Adp.Vec3.rotationTo(Adp.Vec3.normalize([1, 0, 0]), Adp.Vec3.normalize([1, 70, 0])) * Rad2Deg)
+}
+
+function createTextTexture()
+{
+    $("#canvas_area").append("<canvas id='textureCanvas' style='border: none' width='512' height='512'>");
+
+
 }
 
 $( document ).ready(function() 
@@ -16,15 +42,13 @@ $( document ).ready(function()
     // canvas size setting
     CanvasResizing(gl);
 
+    // create text texture
+    createTextTexture();
+
     // object instantiate
     var loopProcess = new LoopProcess(Global.FPS);
 
     var shader = new Shader(gl);
-
-   	var camera = new Camera(
-   		Global.INITIAL_CAMERA_POSITION,
-   		Global.INITIAL_CAMERA_TARGET, 
-   		Global.INITIAL_CAMERA_UPDIR);
 
    	var mouse = new MouseState($("#canvas"));
 
@@ -132,32 +156,34 @@ $( document ).ready(function()
     var grey = [0.5, 0.5, 0.5, 1.0];
     var yellow = [1.0, 1.0, 0.0, 1.0];
     var square_color = [0.9, 0.6, 0.8, 0.2];
+    object_list.add(new Camera("shader_boundary", {
+        position: Global.INITIAL_CAMERA_POSITION,
+        target: Global.INITIAL_CAMERA_TARGET,
+        updir: Global.INITIAL_CAMERA_UPDIR,}),
+        {name:"camera1"});
     object_list.add(new GridLine("shader_line"), {name:"gridline"});
     object_list.add(new Line("shader_line", [-Global.AXISLINE_LENGTH, 0.0, 0.0], [Global.AXISLINE_LENGTH, 0.0, 0.0], red, red), {name:"axisx"});
     object_list.add(new Line("shader_line", [0.0, -Global.AXISLINE_LENGTH, 0.0], [0.0, Global.AXISLINE_LENGTH, 0.0], green, green), {name:"axisy"});
     object_list.add(new Line("shader_line", [0.0, 0.0, -Global.AXISLINE_LENGTH], [0.0, 0.0, Global.AXISLINE_LENGTH], blue, blue), {name:"axisz"});
-    // object_list.add(new Sphere([-2.0, 0.0, 0.0], red, 1.0, "shader_obj"), {name:"red"});
-    // object_list.add(new Sphere([0.0, 2.0, 0.0], blue, 1.0, "shader_obj"), {name:"blue"});
-    // object_list.add(new Sphere([0.0, 0.0, 2.0], white, 1.0, "shader_obj"), {name:"white"});
-    // object_list.add(new Sphere([0.0, 0.0, 0.0], green, 1.0, "shader_obj"), {name:"green"});
     object_list.add(new Line("shader_line", [0.0, 0.0, 0.0], [10.0, 10.0, 0.0], green, green), {name:"ray", drawable:false});
     object_list.add(new ObjectMoveRange("shader_obj"), {name:"ObjectMoveRangeSquare", drawable:false});
-    object_list.add(new Square("shader_obj", [0, 0.5*5, -10], blue, 1.5, 1.0,  5.0), {name:"square"});
-    object_list.add(new Point("shader_point", [5, 0, -8], red, 10), {name:"point"});
-    object_list.add(new Point("shader_point", [8, 0, -5], yellow, 20), {name:"point"});
-    object_list.add(new Point("shader_point", [-1, 1, 0], blue, 10), {name:"point"});
-    object_list.add(new Point("shader_point", [-1, 0, 1], blue, 10), {name:"point"});
-    object_list.add(new Point("shader_point", [-1, -1, 0], blue, 10), {name:"point"});
-    object_list.add(new Point("shader_point", [-1, 0, -1], blue, 10), {name:"point"});
-    var cube = Geometry.get("cube", {});
-    cube.setPosition([10, 0, 0]);
+    object_list.add(Geometry.get("plane", {position:[0, 0.5*5, -10], color:blue, sidew:7.5, sideh:5.0, }), {name:"plane"});
+    object_list.add(Geometry.get("point", {position:[5, 0, -8], color:red, size:10}), {name:"point"});
+    object_list.add(Geometry.get("point", {position:[8, 0, -5], color:yellow, size:20}), {name:"point"});
+    object_list.add(Geometry.get("point", {position:[-1, 1, 0], color:blue, size:10}), {name:"point"});
+    object_list.add(Geometry.get("point", {position:[-1, 0, 1], color:blue, size:10}), {name:"point"});
+    object_list.add(Geometry.get("point", {position:[-1, -1, 0], color:blue, size:10}), {name:"point"});
+    object_list.add(Geometry.get("point", {position:[-10, 0, 0], color:blue, size:10}), {name:"point"});
+    object_list.add(Geometry.get("plane", {position:[-8, 0, -5], color:red, scale:[4, 5, 5], text:"あいうえお", glctx:gl, billboardType:0}), {name:"billboard"});
+    object_list.add(Geometry.get("plane", {position:[-10, 0, 0], color:red, scale:[5, 5, 5], text:"課長", glctx:gl, billboardType:1}), {name:"billboardy"});
+    var cube = Geometry.get("cube", {position:[20, 0, 0]});
     object_list.add(cube, {});
-    var sphere1 = Geometry.get("sphere", {});
-    sphere1.setPosition([8, 0, 5]);
+    var sphere1 = Geometry.get("sphere", {position: [8, 0, 5]});
     object_list.add(sphere1, {});
 
-    // var plane = new Model(gl, "shader_objtex", "plane");
-    // object_list.add(plane, {});
+    var v1 = Adp.Vec3.scale([-1, -5, -3], 10);
+    var v11 =[-v1[0], v1[1], v1[2]]
+    var v2 = Adp.Vec3.scale([3, 8, -1], 10);
     
     var CONCRETE_BARRIER_OPT = {
         shader: {
@@ -174,6 +200,7 @@ $( document ).ready(function()
                 id: "shader_objtex"
             },
         },
+        rotate:{axis:Global.AXISY, rad:Math.PI/2}
     };
     var concrete_barrier = new Model(gl, null, "concrete_barrier", CONCRETE_BARRIER_OPT);
     concrete_barrier.setScale([2.0, 2.0, 2.0]);
@@ -181,7 +208,8 @@ $( document ).ready(function()
     // concrete_barrier.setRotate([0, 1, 0], Math.PI);
     object_list.add(concrete_barrier, {});
 
-    object_list.sort(camera);
+    object_list.sort();
+
     // intialize matrix
     var vMatrix = Adp.Mtx4.identity();
     var pMatrix = Adp.Mtx4.identity();
@@ -189,11 +217,8 @@ $( document ).ready(function()
     // setting the event handler common parameter
     eventHandlerParam.mouse = mouse;
     eventHandlerParam.gl = gl;
-    eventHandlerParam.camera = camera;
     eventHandlerParam.objMgr = object_list; 
     eventHandlerParam.shader = shader; 
-    eventHandlerParam.pMtx = pMatrix; 
-    eventHandlerParam.vMtx = vMatrix;
     eventHandlerParam.selectedObjectParam = null;
     eventHandlerParam.reflectTbTimerId = null;
     eventHandlerParam.resizeTimerId = null;
@@ -222,8 +247,6 @@ $( document ).ready(function()
             // concrete_barrier.setScale([5, 15, 15]);
 
             // update
-            camera.lookAt(vMatrix);
-            camera.perspective(pMatrix);
             mouse.update();
             if (mouse.isClick()) {
                 MouseDownEventHandler(eventHandlerParam);
@@ -236,16 +259,17 @@ $( document ).ready(function()
             }
             if (mouse.isWheel()) {
                 var delta = 1.0 + mouse.getWheelDelta();
-                var cam_pos = camera.getPosition();
+                var cam_pos = object_list.getCurrentCamera().getPosition();
                 cam_pos[0] *= delta
                 cam_pos[1] *= delta
                 cam_pos[2] *= delta
+
                 // console.log(delta);
             }
 
             object_list.update();
             // draw
-            object_list.draw(shader, pMatrix, vMatrix);
+            object_list.draw(shader);
         })
     );
 });

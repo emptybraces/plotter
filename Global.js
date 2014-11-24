@@ -7,6 +7,9 @@ var Global = {
 	FPS : 1000 / 30,
 	CLIENT_WIDTH : 640,
 	CLIENT_HEIGHT : 480,
+	AXISX : [1, 0, 0],
+	AXISY : [0, 1, 0],
+	AXISZ : [0, 0, -1],
 	INITIAL_CAMERA_POSITION : [10.0, 10.0, 20.0],
 	INITIAL_CAMERA_TARGET : [0.0, 0.0, 0.0],
 	INITIAL_CAMERA_UPDIR : [0.0, 1.0, 0.0],
@@ -33,6 +36,8 @@ var Global = {
 	WINDOW_RESIZE_EVENT_DELAY : 300,
 	MODEL_MODE_INCLUDE_INDICES : 0,
 	MODEL_MODE_NORMAL : 1,
+	BILLBOARD_TYPE_XYZ : 0,
+	BILLBOARD_TYPE_Y : 1,
 	TABLE : {
 		SIN : (function(){
 			var c = new Array(360);

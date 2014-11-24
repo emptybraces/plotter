@@ -1,7 +1,7 @@
 //
 // Object Base class
 //
-function ObjectBase(shaderId, hasBuffer)
+function ObjectBase(shaderId, hasBuffer, option)
 {
 	// parameter initialize
 	this.shaderId = shaderId;
@@ -13,9 +13,25 @@ function ObjectBase(shaderId, hasBuffer)
 	this.vcount = null;
 	this.localPositionVertices = null;
 	this.isBufferUpdate_ = false;
+	this.billboardType = null;
 	if (hasBuffer){
 		this.buffer = new GLBuffer();
 	}
+	// parameter setting
+	if (!Util.isUndefined(option)){
+		if (!Util.isUndefined(option.position)) 		this.position 	 = option.position;
+		if (!Util.isUndefined(option.scale)) 			this.scale 		 = option.scale;
+		if (!Util.isUndefined(option.rotate)) 			this.rotate 	 = option.rotate;
+		if (!Util.isUndefined(option.color)) 			this.color 		 = option.color;
+		if (!Util.isUndefined(option.billboardType)) 	this.billboardType= option.billboardType;
+	}
+
+}
+//
+// enable billboard
+//
+ObjectBase.prototype.getBillboardType = function getBillboardType(){
+	return this.billboardType; 
 }
 //
 // need update to parameters of vertex buffer object 

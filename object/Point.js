@@ -1,15 +1,14 @@
 //
 // Point
 //
-function Point(shaderId, position, color, pointSize)
+function Point(shaderId, option)
 {
   	// parent class
-  	ObjectBase.call(this, shaderId, true);
+  	ObjectBase.call(this, shaderId, true, option);
 
 	// parameter
-	this.setPosition(position);
-	this.setColor(color);
-	this.setPointSize(pointSize);
+	if (!Util.isUndefined(option) && !Util.isUndefined(option.size))
+		this.setPointSize(option.size);
 }
 // inherits class
 Util.inherits(Point, ObjectBase);

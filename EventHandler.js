@@ -38,8 +38,6 @@ function MouseDownEventHandler(param)
             param.objMgr.unselect();
             var objParam = param.objMgr.objectPicking(
                 param.shader,
-                param.pMtx,
-                param.vMtx,
                 mouse.getClickCoord()[0],
                 mouse.getClickCoord()[1]);
             if (objParam) {
@@ -86,7 +84,7 @@ function MouseLeaveEventHandler(param)
 //
 function MouseMoveEventHandler(param)
 {
-    var camera = param.camera;
+    var camera = param.objMgr.getCurrentCamera();
     var mouse = param.mouse;
 
     // camera mode
@@ -95,12 +93,13 @@ function MouseMoveEventHandler(param)
         // camera move value
         var mx = mouse.getMoveCoord()[0] * power;
         var my = mouse.getMoveCoord()[1] * power;
-        camera.rotate(-mx, my, 0);
+        camera.round(-mx, my, 0);
         // reset condition
         var cam_pos = camera.getPosition();
-        var lengthYAxisFromCamPos = Math.pow(cam_pos[0], 2) + 0 + Math.pow(cam_pos[2], 2);
-        if (lengthYAxisFromCamPos < Math.pow(Global.CAMERA_NEAR_LIMIT, 2)) {
-            camera.rotate(0, -my, 0);
+        var distanceOriginYAxisFromCamPos = Math.pow(cam_pos[0], 2) + 0 + Math.pow(cam_pos[2], 2);
+        // if exceed the limit, return the rotation in equivalence
+        if (distanceOriginYAxisFromCamPos < Math.pow(Global.CAMERA_NEAR_LIMIT, 2)) {
+            camera.round(0, -my, 0);
         }
     }
     // move object mode
@@ -112,8 +111,10 @@ function MouseMoveEventHandler(param)
         var mouseY = clickY + mouse.getOffsetCoord()[1];
         var intersectPoint = Adp.Vec3.create();
         // get the ray that screen coordinate
-        var from    = Util.screen2World(param.pMtx, param.vMtx, clickX, clickY, param.gl.canvas.width, param.gl.canvas.height, 0.1, 1.0);
-        var to      = Util.screen2World(param.pMtx, param.vMtx, mouseX, mouseY, param.gl.canvas.width, param.gl.canvas.height, 1.0, 1.0);
+        var pmtx    = camera.perspective();
+        var vmtx    = camera.lookAt();
+        var from    = Util.screen2World(pmtx, vmtx, clickX, clickY, param.gl.canvas.width, param.gl.canvas.height, 0.1, 1.0);
+        var to      = Util.screen2World(pmtx, vmtx, mouseX, mouseY, param.gl.canvas.width, param.gl.canvas.height, 1.0, 1.0);
         // intersect plane and ray
         var rangeSquare = param.objMgr.getName("ObjectMoveRangeSquare")[0].ins;
         // var isMove = Intersect.polygonAndRay(

@@ -2,11 +2,15 @@
 // ObjectList class
 //
 var ObjectList = function(gl) {
+	// normal object
 	var objects = [];
-	var deferredObjects = [];
-	var currentObjectId = 0;
-	var isDrawableObjectPicking = false;
-	var objectPickingBuffer = null;
+	var deferred_objects = [];
+	var current_object_id = 0;
+	var is_drawable_object_picking = false;
+	var object_picking_buffer = null;
+	// camera object
+	var camera_objects = [];
+	var current_camera = null;
 
 	// object structure
 	var Object_ = function(instance, option) {
@@ -36,7 +40,7 @@ var ObjectList = function(gl) {
 	//
 	function GenerateId()
 	{
-		return currentObjectId++;
+		return current_object_id++;
 	}
 	//
 	// get a object using the id in list
@@ -67,9 +71,9 @@ var ObjectList = function(gl) {
 		initialize: function initialize()
 		{
 		    // create frame buffer that for Object Picking
-		    objectPickingBuffer = (function(){
-		    	var objectPickingBuffer = gl.createFramebuffer();
-			    gl.bindFramebuffer(gl.FRAMEBUFFER, objectPickingBuffer);
+		    object_picking_buffer = (function(){
+		    	var object_picking_buffer = gl.createFramebuffer();
+			    gl.bindFramebuffer(gl.FRAMEBUFFER, object_picking_buffer);
 
 			    // create renderbuffer
 			    var depthBuffer = gl.createRenderbuffer();
@@ -107,7 +111,7 @@ var ObjectList = function(gl) {
 			    gl.bindTexture(gl.TEXTURE_2D, null);
 			    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
 			    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-			    return objectPickingBuffer;
+			    return object_picking_buffer;
 			})();
 
 		    return 0;
@@ -117,8 +121,20 @@ var ObjectList = function(gl) {
 		//
 		add: function add(obj, option)
 		{
+			var target_list = null;
+			// camera object
+			if (obj instanceof Camera) {
+				target_list = camera_objects;
+				if (current_camera == null) {
+					current_camera = obj;
+				}
+			}
+			else {
+				target_list = objects;
+			}
+
 			// already registered
-			if (objects.some(function(elem){
+			if (target_list.some(function(elem){
 					return elem == obj;
 				})) {
 				console.error("already registered");
@@ -133,12 +149,12 @@ var ObjectList = function(gl) {
 			
 			// Model instance case
 			if (Util.hasFunction(obj.isLoadCompleted) && !obj.isLoadCompleted()){
-				deferredObjects.push(new Object_(obj, option));
+				deferred_objects.push(new Object_(obj, option));
 				return;
 			}
 
 			// add to list
-			objects.push(new Object_(obj, option));
+			target_list.push(new Object_(obj, option));
 			// create buffer object
 			obj.createVBO(gl, obj.getVBOAttributes());
 			obj.createIBO(gl, obj.getIndex());
@@ -158,9 +174,9 @@ var ObjectList = function(gl) {
 		//
 		// sort object
 		//
-		sort: function sort(camera)
+		sort: function sort()
 		{
-			var cp = camera.getPosition();
+			var cp = current_camera.getPosition();
 			objects.sort(function(a, b) {
 				var ap = a.ins.getPosition();
 				var bp = a.ins.getPosition();
@@ -208,10 +224,10 @@ var ObjectList = function(gl) {
 			}, this);
 
 			// add deferred object to main object list
-			if (0 < deferredObjects.length) {
+			if (0 < deferred_objects.length) {
 
 				// load completed object
-				var loadCompletedObjects = deferredObjects.filter(function(obj){
+				var loadCompletedObjects = deferred_objects.filter(function(obj){
 					return obj.ins.isLoadCompleted();
 				});
 
@@ -221,12 +237,12 @@ var ObjectList = function(gl) {
 				}, this);
 
 				// remove deferred objects
-				deferredObjects = deferredObjects.filter(function(obj){
+				deferred_objects = deferred_objects.filter(function(obj){
 					return !loadCompletedObjects.some(function(completedObj){
 						return completedObj.opt.id == obj.opt.id;
 					});
 				});
-				// deferredObjects.forEach(function(obj){
+				// deferred_objects.forEach(function(obj){
 				// 	console.log("deferred:", obj.opt.id)
 				// }, this);
 			}
@@ -234,14 +250,18 @@ var ObjectList = function(gl) {
 		//
 		// draw all object you have
 		//
-		draw: function draw(shader, projMat, viewMat)
+		draw: function draw(shader)
 		{
 		    var cc = Global.PRIMARY_BUFFER_CLEAR_COLOR;
 		    var clear_depth = Global.PRIMARY_BUFFER_DEPTH_VALUE;
+			var pMatrix = Adp.Mtx4.identity();
+			var vMatrix = Adp.Mtx4.identity();
 			var mMatrix = Adp.Mtx4.identity();
 			var pvMatrix = Adp.Mtx4.identity();
 			var inverseMatrix = Adp.Mtx4.identity();
-			Adp.Mtx4.multiply(pvMatrix, projMat, viewMat);
+			current_camera.perspective(pMatrix);
+			current_camera.lookAt(vMatrix);
+			Adp.Mtx4.multiply(pvMatrix, pMatrix, vMatrix);
 
 			// switch primary rendering
 		    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -265,12 +285,13 @@ var ObjectList = function(gl) {
 				Adp.Mtx4.identity(inverseMatrix);
 				var matrices = {
 					m: mMatrix,
-					v: viewMat,
-					p: projMat,
+					v: vMatrix,
+					p: pMatrix,
 					pv: pvMatrix,
 					inv: inverseMatrix
 				}
 				opt.shaderObject = shader;
+				opt.camera = current_camera;
 				ins.draw(gl, obj_shader, matrices, opt);
 			});
 			gl.flush();
@@ -278,16 +299,20 @@ var ObjectList = function(gl) {
 		//
 		// switch drawable for object picking 
 		//
-		objectPicking: function objectPicking(shader, projMat, viewMat, screenx, screeny)
+		objectPicking: function objectPicking(shader, screenx, screeny)
 		{
 		    var cc = Global.PRIMARY_BUFFER_CLEAR_COLOR;
 		    var clear_depth = Global.PRIMARY_BUFFER_DEPTH_VALUE;
-			var mMatrix = Adp.Mtx4.identity(Adp.Mtx4.create());
-			var pvMatrix = Adp.Mtx4.identity(Adp.Mtx4.create());
-			Adp.Mtx4.multiply(pvMatrix, projMat, viewMat);
+			var pMatrix = Adp.Mtx4.identity();
+			var vMatrix = Adp.Mtx4.identity();
+			var mMatrix = Adp.Mtx4.identity();
+			var pvMatrix = Adp.Mtx4.identity();
+			current_camera.perspective(pMatrix);
+			current_camera.lookAt(vMatrix);
+			Adp.Mtx4.multiply(pvMatrix, pMatrix, vMatrix);
 
 			// switch object picking rendering
-			gl.bindFramebuffer(gl.FRAMEBUFFER, objectPickingBuffer);
+			gl.bindFramebuffer(gl.FRAMEBUFFER, object_picking_buffer);
 		    // clear color
 		    gl.clearColor(cc[0], cc[1], cc[2], cc[3]);
 		    gl.clearDepth(clear_depth);
@@ -299,14 +324,15 @@ var ObjectList = function(gl) {
 					return; // continue loop
 				var ins = elem.ins;
 				var opt = elem.opt;
+				opt.camera = current_camera;
 				var obj_shader = shader.switchShader(
 					(ins.getShaderId() != "shader_point" ? "shader_boundary" : "shader_point"));
 
 				Adp.Mtx4.identity(mMatrix);
 				var matrices = {
 					m: mMatrix,
-					v: viewMat,
-					p: projMat,
+					v: vMatrix,
+					p: pMatrix,
 					pv: pvMatrix
 				}
 				obj_shader.setObjectColor(gl, GenerateColor(opt.id));
@@ -316,8 +342,6 @@ var ObjectList = function(gl) {
 			// get the screen pixel color
 			var c = new Uint8Array(4);
 			gl.readPixels(screenx, screeny, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, c);
-			console.log(GetId(c))
-			// console.log(c)
 			// get a object using the color obtained
 			return GetId(c);
 		},
@@ -405,6 +429,36 @@ var ObjectList = function(gl) {
 			return objects.filter(function(elem){
 				return elem.opt.name == name;
 			});
+		},
+		//
+		// get a object using the id
+		//
+		getId: function getId(id)
+		{
+			return objects.filter(function(elem){
+				return elem.opt.id == name;
+			})[0];
+		},
+		//
+		// specify the current camera
+		//
+		setCurrentCamera : function setCurrentCamera() {
+			current_camera = object;
+			return this;
+		},
+		//
+		// get the current camera
+		//
+		getCurrentCamera : function getCurrentCamera(object) {
+			return current_camera;
+		},
+		//
+		// dump objects paramter
+		//
+		dump : function dump() {
+			objects.forEach(function(elem){
+				console.log(elem.opt.id, elem.opt.name);
+			})
 		},
 	};
 }

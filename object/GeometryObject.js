@@ -1,22 +1,24 @@
-function GeometryObject(shaderId, geometryRef, option)
+function GeometryModel(shaderId, geometryRef, option)
 {
   	// parent class
-  	ObjectBase.call(this, shaderId, true);
+  	ObjectBase.call(this, shaderId, true, option);
 
-  	// paramter
+  	// parameter
   	this.geometryRef = geometryRef;
+
+
 }
 // inherits class
-Util.inherits(GeometryObject, ObjectBase);
+Util.inherits(GeometryModel, ObjectBase);
 
-GeometryObject.prototype.isLoadCompleted = function isLoadCompleted()
+GeometryModel.prototype.isLoadCompleted = function isLoadCompleted()
 {
 	if (!Util.isUndefined(this.geometryRef)){
 		return this.geometryRef.isLoadCompleted();
 	}
 	return true;
 }
-GeometryObject.prototype.callbackCompleted = function callbackCompleted()
+GeometryModel.prototype.callbackCompleted = function callbackCompleted()
 {
 	console.log("callbackCompleted:", this.geometryRef.resourceName);
 
@@ -28,14 +30,14 @@ GeometryObject.prototype.callbackCompleted = function callbackCompleted()
   	delete(this.geometryRef);
 }
 
-GeometryObject.prototype.getVBOAttributes = function getVBOAttributes()
+GeometryModel.prototype.getVBOAttributes = function getVBOAttributes()
 {
 	// make array for color data
 	var color = Util.increaseArrayElement(this.getColor(), this.getVertexCount());
 	return [this.getLocalPositionVertices(), this.normal, color];
 }
 
-GeometryObject.prototype.draw = function draw(gl, shader, matrices, opt)
+GeometryModel.prototype.draw = function draw(gl, shader, matrices, opt)
 {
 	// calculate the matrix
 	Adp.Mtx4.translate(matrices.m, matrices.m, this.getPosition());
@@ -59,7 +61,7 @@ GeometryObject.prototype.draw = function draw(gl, shader, matrices, opt)
 	gl.drawArrays(gl.TRIANGLES, 0, this.getVertexCount());
 } 
 
-GeometryObject.prototype.drawForObjectPicking = function drawForObjectPicking(gl, shader, matrices)
+GeometryModel.prototype.drawForObjectPicking = function drawForObjectPicking(gl, shader, matrices)
 {
 	// calculate the matrix
 	Adp.Mtx4.translate(matrices.m, matrices.m, this.getPosition());

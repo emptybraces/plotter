@@ -17,17 +17,27 @@ var Geometry = (function(){
 		get: function get(geometryId, option)
 		{
 			var id = geometryId.toLowerCase();
-			if (Util.isUndefined(geometries[id])){
-				console.error(geometryId + "is not supported");
-				return null;
+			switch(id) {
+				case "point":
+					return new Point("shader_point", option);
+				case "plane":
+					var shader_id = "shader_obj";
+					if (!Util.isUndefined(option) && !Util.isUndefined(option.text))
+						shader_id = "shader_objtex";
+					return new Plane(shader_id, option);
+				case "cube":
+				case "sphere":
+					var geometry = geometries[id];
+					var geometryObj = new GeometryModel("shader_obj", geometry, option);
+					if (geometry.isLoadCompleted()){
+						geometryObj.callbackCompleted();
+					}
+					return geometryObj;
+				default:
+					console.error(geometryId + "is not supported");
+					return null;
 			}
 
-			var geometry = geometries[id];
-			var geometryObj = new GeometryObject("shader_obj", geometry, option);
-			if (geometry.isLoadCompleted()){
-				geometryObj.callbackCompleted();
-			}
-			return geometryObj;
 			// switch(geometryId.toLowerCase()) {
 			// 	case "cube":
 			// 		Util.defineProperty(option, isLoadCompletedCallback, gemeotries.cube.isLoadCompleted);

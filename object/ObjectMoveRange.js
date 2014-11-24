@@ -3,19 +3,14 @@
 //
 function ObjectMoveRange(shaderId)
 {
+	option = {};
+	option.color = [1.0, 0.0, 0.0, 0.2]; // for debug
+	option.sidew = Global.GRIDLINE_LENGTH * 2;
+	option.sideh = Global.GRIDLINE_LENGTH * 2;
   	// parent class
-  	ObjectBase.call(this, shaderId, false);
-	// Square Object
-	var position = Adp.Vec3.create(0.0, 0.0, 0.0);
-	this.setColor([1.0, 0.0, 0.0, 0.2]); // for debug
-	var sidew = Global.GRIDLINE_LENGTH * 2;
-	var sideh = Global.GRIDLINE_LENGTH * 2;
-	this.square = new Square(
-		shaderId,
-		position, 
-		this.getColor(), 
-		sidew, sideh, 
-		this.getScale()[0]);
+  	ObjectBase.call(this, shaderId, false, option);
+	// plane Object
+	this.plane = new Plane(shaderId, option);
 	// parameter
 	this.transformedLocalPositionVertices = [];
 }
@@ -23,10 +18,10 @@ function ObjectMoveRange(shaderId)
 Util.inherits(ObjectMoveRange, ObjectBase);
 
 ObjectMoveRange.prototype.getPosition = function getPosition(){
-	return this.square.getPosition();
+	return this.plane.getPosition();
 }
 ObjectMoveRange.prototype.getNormal = function getNormal(){
-	return this.square.getNormal();
+	return this.plane.getNormal();
 }
 ObjectMoveRange.prototype.intersectRay = function intersectRay(from, to, intersectPoint)
 {
@@ -35,26 +30,26 @@ ObjectMoveRange.prototype.intersectRay = function intersectRay(from, to, interse
     	from, 
     	to, 
     	this.transformedLocalPositionVertices, 
-    	this.square.getNormal());
+    	this.plane.getNormal());
 }
 ObjectMoveRange.prototype.getIndex = function getIndex() {
-	return this.square.getIndex();
+	return this.plane.getIndex();
 }
 ObjectMoveRange.prototype.getShaderId = function getShaderId() {
-	return this.square.getShaderId();
+	return this.plane.getShaderId();
 }
 ObjectMoveRange.prototype.getVBOAttributes = function getVBOAttributes() {
-	return this.square.getVBOAttributes();
+	return this.plane.getVBOAttributes();
 }
 ObjectMoveRange.prototype.createVBO = function createVBO(gl, attributes) {
-	this.square.createVBO(gl, attributes);
+	this.plane.createVBO(gl, attributes);
 }
 ObjectMoveRange.prototype.createIBO = function createIBO(gl, index) {
-	this.square.createIBO(gl, index);
+	this.plane.createIBO(gl, index);
 }
-ObjectMoveRange.prototype.draw = function draw(gl, shader, matrices)
+ObjectMoveRange.prototype.draw = function draw(gl, shader, matrices, opt)
 {
-	this.square.draw(gl, shader, matrices);
+	this.plane.draw(gl, shader, matrices, opt);
 } 
 
 ObjectMoveRange.prototype.updatePosition = function updatePosition(objMgr)
@@ -66,31 +61,31 @@ ObjectMoveRange.prototype.updatePosition = function updatePosition(objMgr)
 
     switch(Global.OBJECT_MOVE_TYPE) {
         case 'XY': 
-            this.square.setPosition([0, 0, selectedObj.getPosition()[2]]);
-            this.square.setRotate(null);
+            this.plane.setPosition([0, 0, selectedObj.getPosition()[2]]);
+            this.plane.setRotate(null);
             break;
         case 'XZ': 
-            this.square.setPosition([0, selectedObj.getPosition()[1], 0]);
-            this.square.setRotate([1, 0, 0], Math.PI/2);
+            this.plane.setPosition([0, selectedObj.getPosition()[1], 0]);
+            this.plane.setRotate([1, 0, 0], Math.PI/2);
             break;
         case 'YZ': 
-            this.square.setPosition([selectedObj.getPosition()[0], 0, 0]);
-            this.square.setRotate([0, 1, 0], Math.PI/2);
+            this.plane.setPosition([selectedObj.getPosition()[0], 0, 0]);
+            this.plane.setRotate([0, 1, 0], Math.PI/2);
             break;
     }
 
     // update transformed local position vertices
 	var m = Adp.Mtx4.identity();
 	// transform the translate
-	var t = this.square.getPosition();
+	var t = this.plane.getPosition();
 	Adp.Mtx4.translate(m, m, t);
 	// transform the rotate
-	var r = this.square.getRotate();
+	var r = this.plane.getRotate();
 	if (r != null)
 		Adp.Mtx4.rotate(m, m, r.rad, r.axis);
 	// apply the rotate matrix to position
 	var v = [];
-	$.each(Util.convertArraySingle2Vec3(this.square.getLocalPositionVertices()), function() {
+	$.each(Util.convertArraySingle2Vec3(this.plane.getLocalPositionVertices()), function() {
 		var tmp = Adp.Vec3.create();
 		Adp.Mtx4.multiplyVec3(tmp, m, this);
     	v.push(tmp[0], tmp[1], tmp[2]);
