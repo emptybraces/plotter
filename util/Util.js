@@ -49,6 +49,55 @@ Util.changeMouseCursorIcon = function changeMouseCursorIcon(elem, mode) {
 	$("#" + elem).css("cursor", mode);
 }
 
+// Util.clone = function clone(obj)
+// {
+// 	return jQuery.extend(true, {}, obj);
+// }
+
+Util.clone = function clone(obj) {
+    var copy;
+    // Handle the 3 simple types, and null or undefined
+    if (null == obj || "object" != typeof obj)
+    	return obj;
+    // Handle Array
+    if (obj instanceof Array) {
+        copy = [];
+        for (var i = 0, len = obj.length; i < len; i++) {
+            copy[i] = clone(obj[i]);
+        }
+        return copy;
+    }
+    // Handle Object
+    if (obj instanceof Object) {
+    	// typed array
+    	switch(Object.prototype.toString.call(obj)){
+    		case "[object Float32Array]":
+    		case "[object Uint32Array]":
+    		case "[object Int32Array]":
+    		case "[object Uint16Array]":
+    		case "[object Int16Array]":
+    		case "[object Uint8Array]":
+    		case "[object Int8Array]":
+    		return obj.subarray();
+    	}
+    	// standard  
+        copy = {};
+        for (var attr in obj) {
+            if (obj.hasOwnProperty(attr)) 
+            	copy[attr] = clone(obj[attr]);
+        }
+        return copy;
+    }
+    // Handle Date
+    if (obj instanceof Date) {
+        copy = new Date();
+        copy.setTime(obj.getTime());
+        return copy;
+    }
+
+    throw new Error("Unable to copy obj! Its type isn't supported.");
+}
+
 Util.convertArrayMultiple2Single = function convertArrayMultiple2Single(src)
 {
 	var a = [];
@@ -148,10 +197,6 @@ Util.inherits = function inherits(ctor, superCtor) {
 	});
 }
 
-Util.clone = function clone(obj)
-{
-	return jQuery.extend(true, {}, obj);
-}
 
 Util.calculateNormal = function calculateNormal(vertices)
 {

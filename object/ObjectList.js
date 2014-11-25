@@ -457,7 +457,7 @@ var ObjectList = function(gl) {
 		//
 		dump : function dump() {
 			objects.forEach(function(elem){
-				console.log(elem.opt.id, elem.opt.name);
+				console.log(elem.opt.id, elem.opt.name, elem.ins.getColor());
 			})
 		},
 	};

@@ -19,11 +19,11 @@ function ObjectBase(shaderId, hasBuffer, option)
 	}
 	// parameter setting
 	if (!Util.isUndefined(option)){
-		if (!Util.isUndefined(option.position)) 		this.position 	 = option.position;
-		if (!Util.isUndefined(option.scale)) 			this.scale 		 = option.scale;
-		if (!Util.isUndefined(option.rotate)) 			this.rotate 	 = option.rotate;
-		if (!Util.isUndefined(option.color)) 			this.color 		 = option.color;
-		if (!Util.isUndefined(option.billboardType)) 	this.billboardType= option.billboardType;
+		if (!Util.isUndefined(option.position)) 		this.position 	 = Util.clone(option.position);
+		if (!Util.isUndefined(option.scale)) 			this.scale 		 = Util.clone(option.scale);
+		if (!Util.isUndefined(option.rotate)) 			this.rotate 	 = Util.clone(option.rotate);
+		if (!Util.isUndefined(option.color)) 			this.color 		 = Util.clone(option.color);
+		if (!Util.isUndefined(option.billboardType)) 	this.billboardType= Util.clone(option.billboardType);
 	}
 
 }

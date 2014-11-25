@@ -161,7 +161,7 @@ function TextBoxChangeEventHandler(e)
     var maxlength = $(this).attr("maxlength");
     if ( !exceptNumber || (exceptNumber.length == 1 && exceptNumber[0] == ".")) {
         var fixed_value = value.toFixed(maxlength - 2);
-        $(this).parent().next().text(Util.restrictLength(fixed_value, maxlength));
+        $(this).parent().next().children().text(Util.restrictLength(fixed_value, maxlength));
         switch(e.data.currentFocusElementId) {
             case "object_position_x_tb": e.data.selectedObjectParam.ins.setPosition({x:value}); break;
             case "object_position_y_tb": e.data.selectedObjectParam.ins.setPosition({y:value}); break;
@@ -212,7 +212,7 @@ function TextBoxChangeEventHandlerColor(e)
     var maxlength = $(this).attr("maxlength");
     if (!exceptNumber) {
         value = Math.min(e.data.MAX_VALUE_COLOR, value);
-        $(this).parent().next().text(Util.restrictLength(value, maxlength));
+        $(this).parent().next().children().text(Util.restrictLength(value, maxlength));
         $(this).val(value);
     } else {
         return;
@@ -237,7 +237,7 @@ function TextBoxChangeEventHandlerAlpha(e)
     var maxlength = $(this).attr("maxlength");
     if ( !exceptNumber || (exceptNumber.length == 1 && exceptNumber[0] == ".")) {
         value = Math.min(e.data.MAX_VALUE_COLOR, value);
-        $(this).parent().next().text(Util.restrictLength(value, maxlength));
+        $(this).parent().next().children().text(Util.restrictLength(value, maxlength));
         $(this).val(value);
     } else {
         return;

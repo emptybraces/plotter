@@ -155,7 +155,6 @@ $( document ).ready(function()
     var white = [1.0, 1.0, 1.0, 1.0];
     var grey = [0.5, 0.5, 0.5, 1.0];
     var yellow = [1.0, 1.0, 0.0, 1.0];
-    var square_color = [0.9, 0.6, 0.8, 0.2];
     object_list.add(new Camera("shader_boundary", {
         position: Global.INITIAL_CAMERA_POSITION,
         target: Global.INITIAL_CAMERA_TARGET,
@@ -170,10 +169,10 @@ $( document ).ready(function()
     object_list.add(Geometry.get("plane", {position:[0, 0.5*5, -10], color:blue, sidew:7.5, sideh:5.0, }), {name:"plane"});
     object_list.add(Geometry.get("point", {position:[5, 0, -8], color:red, size:10}), {name:"point"});
     object_list.add(Geometry.get("point", {position:[8, 0, -5], color:yellow, size:20}), {name:"point"});
-    object_list.add(Geometry.get("point", {position:[-1, 1, 0], color:blue, size:10}), {name:"point"});
-    object_list.add(Geometry.get("point", {position:[-1, 0, 1], color:blue, size:10}), {name:"point"});
-    object_list.add(Geometry.get("point", {position:[-1, -1, 0], color:blue, size:10}), {name:"point"});
-    object_list.add(Geometry.get("point", {position:[-10, 0, 0], color:blue, size:10}), {name:"point"});
+    object_list.add(Geometry.get("point", {position:[-1, 1, 0], color:blue, size:10}), {name:"point1"});
+    object_list.add(Geometry.get("point", {position:[-1, 0, 1], color:blue, size:10}), {name:"point2"});
+    object_list.add(Geometry.get("point", {position:[-1, -1, 0], color:blue, size:10}), {name:"point3"});
+    object_list.add(Geometry.get("point", {position:[-10, 0, 0], color:blue, size:10}), {name:"point4"});
     object_list.add(Geometry.get("plane", {position:[-8, 0, -5], color:red, scale:[4, 5, 5], text:"あいうえお", glctx:gl, billboardType:0}), {name:"billboard"});
     object_list.add(Geometry.get("plane", {position:[-10, 0, 0], color:red, scale:[5, 5, 5], text:"課長", glctx:gl, billboardType:1}), {name:"billboardy"});
     var cube = Geometry.get("cube", {position:[20, 0, 0]});
@@ -181,10 +180,6 @@ $( document ).ready(function()
     var sphere1 = Geometry.get("sphere", {position: [8, 0, 5]});
     object_list.add(sphere1, {});
 
-    var v1 = Adp.Vec3.scale([-1, -5, -3], 10);
-    var v11 =[-v1[0], v1[1], v1[2]]
-    var v2 = Adp.Vec3.scale([3, 8, -1], 10);
-    
     var CONCRETE_BARRIER_OPT = {
         shader: {
             BOUND_BOX: {

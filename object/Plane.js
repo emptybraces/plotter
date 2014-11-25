@@ -146,13 +146,13 @@ Plane.prototype.draw = function draw(gl, shader, matrices, opt)
 {
 	// calculate the matrix
 	switch(this.getBillboardType()){
-		case BILLBOARD_TYPE_XYZ:
+		case Global.BILLBOARD_TYPE_XYZ:
 			Adp.Mtx4.translate(matrices.m, matrices.m, this.getPosition());
 			Adp.Mtx4.billboard(matrices.m, matrices.p, matrices.v, matrices.m, matrices.pv);
 			Adp.Mtx4.scale(matrices.m, matrices.m, this.getScale());
 			Adp.Mtx4.multiply(matrices.m, matrices.pv, matrices.m);
 			break;
-		case BILLBOARD_TYPE_Y:
+		case Global.BILLBOARD_TYPE_Y:
 			// Adp.Mtx4.translate(matrices.m, matrices.m, this.getPosition());
 			Adp.Mtx4.billboardY(matrices.m, matrices.m, this.getPosition(), this.getNormal(), opt.camera);
 			Adp.Mtx4.scale(matrices.m, matrices.m, this.getScale());
