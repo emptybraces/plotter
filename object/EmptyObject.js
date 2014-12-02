@@ -1,7 +1,8 @@
+// EmptyObject class
 function EmptyObject()
 {
   	// parent class
-  	ObjectBase.call(this, "")
+  	ObjectBase.call(this, null);
 }
 
 // inherits class

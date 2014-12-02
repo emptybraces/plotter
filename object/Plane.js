@@ -4,7 +4,7 @@
 function Plane(shaderId, option)
 {
   	// parent class
-  	ObjectBase.call(this, shaderId, true, option);
+  	ObjectBase.call(this, shaderId, option);
 
 	// polygon
 	var sidew = (!Util.isUndefined(option) && !Util.isUndefined(option.sidew)) ? option.sidew : 1;
@@ -28,9 +28,7 @@ function Plane(shaderId, option)
 
 	// load texture
 	this.texture = null;
-	if (!Util.isUndefined(option) && !Util.isUndefined(option.text)){
-		var gl = option.glctx;
-		this.texture = gl.createTexture();
+	if (!Util.isUndefined(option) && !Util.isUndefined(option.image)){
 		// var image = new Image();
 		// image.onload = function() { 
 		// 	gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -44,63 +42,27 @@ function Plane(shaderId, option)
 		// image.src = "assets/image/" + elem;
 		// this.textures.push(texture);
 		// this.loadCompleted.push(false);
-	    var textureCanvas = document.getElementById('textureCanvas')
-	    var ctx = textureCanvas.getContext('2d');
-	    // showcase live rendering by writing the current time
-	    var date = new Date();
-	    function two(number) {
-	        if (number < 10)
-	            return '0' + number;
-	        else
-	            return number;
-	    }
-	    // var text = two(date.getHours()) + ':' +
-	    // two(date.getMinutes()) + ':' +
-	    // two(date.getSeconds());
-	    // var text = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-
-	    // // let the color of the box rotate every minute
-	    // var secs = date.getSeconds() + date.getMilliseconds() / 1000;
-	    // // ctx.fillStyle = 'hsl(' + 360 * (secs / 60) + ',100%,50%)';
-	    ctx.fillStyle = "black";
-	    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-	    // // ctx.fillText(text, 0, 0);
-	    // // console.log(ctx.canvas.width, ctx.canvas.height)
-
-	    // // write white text with black border
-	    // ctx.fillStyle = 'white';
-	    // ctx.lineWidth = 2.5;
-	    // ctx.strokeStyle = 'black';
-	    // ctx.save();
-	    // ctx.font = "30px 'ＭＳ ゴシック'";
-	    // ctx.textAlign = 'center';
-	    // ctx.textBaseline = 'middle';
-	    // var leftOffset = ctx.canvas.width / 2;
-	    // var topOffset = ctx.canvas.height / 2;
-	    // // ctx.strokeText(text, leftOffset, topOffset);
-	    // ctx.fillText(text, leftOffset, topOffset);
-	    // ctx.restore();
-	    ctx.fillStyle = "white";
-	    ctx.font = "30px 'ＭＳ ゴシック'";
-	    ctx.textAlign = "left";
-	    ctx.textBaseline = "top";
-	    ctx.fillText("abcABCあいう漢字", 0, 0, 100);
-	    ctx.fillText("abcABCあいう漢字", 0, 30, 100);
-	    gl.bindTexture(gl.TEXTURE_2D, this.texture);
-		// gl.texImage2D(gl.TEXTURE_2D, 0, textureCanvas);
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textureCanvas);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-		gl.generateMipmap(gl.TEXTURE_2D);
-		gl.bindTexture(gl.TEXTURE_2D, null);
-
+	}
+	
+	// sets a text canvas
+	if (!Util.isUndefined(option) && !Util.isUndefined(option.text)){
+		var ctx = ObjectManager.getTextContext();
+		ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+		ctx.fillStyle = "black";
+		ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+		ctx.fillStyle = "white";
+	    ctx.fillText(option.text, 0, 0, 100);
+   		this.texture = Adp.GL.createTexture(ObjectManager.getTextCanvas());
 	}
 
-  	// parameter
+  	// initialize
 	this.setIndex([0, 2, 1, 1, 2, 3]);
 	this.setVertexCount(4);
 	this.setLocalPositionVertices(this.polygon.getVertices());
 	this.normal = this.polygon.getNormal();
+	this.createVBO(this.getVBOAttributes());
+	this.createIBO(this.getIndex());
+
 }
 // inherits class
 Util.inherits(Plane, ObjectBase);
@@ -108,53 +70,36 @@ Plane.prototype.getNormal = function getNormal()
 {
 	return this.normal;
 }
-Plane.prototype.calculateNormal = function calculateNormal()
-{
-	// var m = Adp.Mtx4.identity();
-	// // transform the rotate
-	// var r = this.getRotate();
-	// if (r != null)
-	// 	Adp.Mtx4.rotate(m, m, r.rad, r.axis);
-	// // apply the rotate matrix to position
-	// var new_vec = [];
-	// var tmp = Adp.Vec3.create();
-	// Util.convertArraySingle2Vec3(this.polygon.getVertices()).forEach(function(elem) {
-	// 	Adp.Mtx4.multiplyVec3(tmp, m, elem);
- //    	new_vec.push(tmp);
-	// });
-	// // calculate normal
-	// return Util.calculateNormal(new_vec);
-}
 Plane.prototype.getVBOAttributes = function getVBOAttributes()
 {
 	var n = this.getNormal();
 	if (this.texture == null) {
 		return [this.getLocalPositionVertices(),
-		 		Util.increaseArrayElement(n, this.getVertexCount()),
-		 		Util.increaseArrayElement(this.getColor(), this.getVertexCount())];
+		 		Util.increaseElement(n, this.getVertexCount()),
+		 		Util.increaseElement(this.getColor(), this.getVertexCount())];
 	}
 	else {
 		// v1 -> v2 -> v3 -> v4
 		var t = [0, 0, 1, 0, 0, 1, 1, 1];
 		return [this.getLocalPositionVertices(),
-		 		Util.increaseArrayElement(n, this.getVertexCount()),
-		 		Util.increaseArrayElement(this.getColor(), this.getVertexCount()),
+		 		Util.increaseElement(n, this.getVertexCount()),
+		 		Util.increaseElement(this.getColor(), this.getVertexCount()),
 		 		t];
 	}
 }
-Plane.prototype.draw = function draw(gl, shader, matrices, opt)
+Plane.prototype.draw = function draw(shader, matrices, opt)
 {
 	// calculate the matrix
 	switch(this.getBillboardType()){
-		case Global.BILLBOARD_TYPE_XYZ:
+		case CommonManager.BILLBOARD_TYPE_XYZ:
 			Adp.Mtx4.translate(matrices.m, matrices.m, this.getPosition());
 			Adp.Mtx4.billboard(matrices.m, matrices.p, matrices.v, matrices.m, matrices.pv);
 			Adp.Mtx4.scale(matrices.m, matrices.m, this.getScale());
 			Adp.Mtx4.multiply(matrices.m, matrices.pv, matrices.m);
 			break;
-		case Global.BILLBOARD_TYPE_Y:
+		case CommonManager.BILLBOARD_TYPE_Y:
 			// Adp.Mtx4.translate(matrices.m, matrices.m, this.getPosition());
-			Adp.Mtx4.billboardY(matrices.m, matrices.m, this.getPosition(), this.getNormal(), opt.camera);
+			Adp.Mtx4.billboardY(matrices.m, matrices.m, this.getPosition(), this.getNormal());
 			Adp.Mtx4.scale(matrices.m, matrices.m, this.getScale());
 			Adp.Mtx4.multiply(matrices.m, matrices.pv, matrices.m);
 			break;
@@ -172,21 +117,20 @@ Plane.prototype.draw = function draw(gl, shader, matrices, opt)
 	
 	// passing the shader paramter
 	if (this.texture != null) {
-		this.getBuffer().setTexture(gl, this.texture, 0);
-		shader.setSampler(gl, 0);
+		Adp.GL.bindTexture(this.texture, 0);
+		shader.setSampler(0);
 	}
-	this.getBuffer().setAttribute(
-		gl,
-		shader.getAttributeLocation(), 
+	this.getBuffer().bindAttribute(
+		shader.getAttributeLocations(), 
 		shader.getAttributeStride());
-	shader.setMVPMatrix(gl, matrices.m);
-	shader.setDirectionLight(gl, Global.LIGHT_DIRECTION);
-	shader.setIsUseLight(gl, true);
-	shader.setAmbientColor(gl, opt.selected ? Global.AMBIENT_COLOR_SELECTED : Global.AMBIENT_COLOR);
+	shader.setMVPMatrix(matrices.m);
+	shader.setDirectionLight( CommonManager.LIGHT_DIRECTION);
+	shader.setIsUseLight(true);
+	shader.setAmbientColor(opt.selected ? CommonManager.AMBIENT_COLOR_SELECTED : CommonManager.AMBIENT_COLOR);
 	// draw
-	gl.drawElements(gl.TRIANGLES, this.getIndex().length, gl.UNSIGNED_SHORT, 0);
+	Adp.GL.drawElements(0, this.getBuffer().ibo, this.getIndex().length);
 } 
-Plane.prototype.drawForObjectPicking = function drawForObjectPicking(gl, shader, matrices)
+Plane.prototype.drawForObjectPicking = function drawForObjectPicking(shader, matrices)
 {
 	// calculate the matrix
 	Adp.Mtx4.translate(matrices.m, matrices.m, this.getPosition());
@@ -196,11 +140,10 @@ Plane.prototype.drawForObjectPicking = function drawForObjectPicking(gl, shader,
 	Adp.Mtx4.scale(matrices.m, matrices.m, this.getScale());
 	Adp.Mtx4.multiply(matrices.m, matrices.pv, matrices.m);
 	// passing the shader paramter
-	this.getBuffer().setAttribute(
-		gl,
-		[shader.getAttributeLocation()[0]], 
+	this.getBuffer().bindAttribute(
+		[shader.getAttributeLocations()[0]], 
 		[shader.getAttributeStride()[0]]);
-	shader.setMVPMatrix(gl, matrices.m);
+	shader.setMVPMatrix(matrices.m);
 	// draw
-	gl.drawElements(gl.TRIANGLES, this.getIndex().length, gl.UNSIGNED_SHORT, 0);
+	Adp.GL.drawElements(0, this.getBuffer().ibo, this.getIndex().length);
 } 

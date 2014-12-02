@@ -1,7 +1,7 @@
 //
 // Object Base class
 //
-function ObjectBase(shaderId, hasBuffer, option)
+function ObjectBase(shaderId, option)
 {
 	// parameter initialize
 	this.shaderId = shaderId;
@@ -14,7 +14,7 @@ function ObjectBase(shaderId, hasBuffer, option)
 	this.localPositionVertices = null;
 	this.isBufferUpdate_ = false;
 	this.billboardType = null;
-	if (hasBuffer){
+	if (null != shaderId){
 		this.buffer = new GLBuffer();
 	}
 	// parameter setting
@@ -56,25 +56,25 @@ ObjectBase.prototype.getBuffer = function getBuffer() {
 //
 // create vbo
 //
-ObjectBase.prototype.createVBO = function createVBO(gl, attributes) {
+ObjectBase.prototype.createVBO = function createVBO(attributes) {
 	if (this.hasBuffer()) {
-		this.buffer.createVBO(gl, attributes);
-	}
-}
-//
-// update vbo
-//
-ObjectBase.prototype.updateVBO = function updateVBO(gl, attributes) {
-	if (this.hasBuffer()) {
-		this.buffer.updateVBO(gl, attributes);
+		this.buffer.createVBO(attributes);
 	}
 }
 //
 // create ibo
 //
-ObjectBase.prototype.createIBO = function createIBO(gl, index) {
-	if (this.hasBuffer() && this.index != null) {
-		this.buffer.createIBO(gl, index);
+ObjectBase.prototype.createIBO = function createIBO(indices) {
+	if (this.hasBuffer()) {
+		this.buffer.createIBO(indices);
+	}
+}
+//
+// update vbo
+//
+ObjectBase.prototype.updateVBO = function updateVBO(attributes) {
+	if (this.hasBuffer()) {
+		this.buffer.updateVBO(attributes);
 	}
 }
 //

@@ -1,12 +1,13 @@
+//
+// GeometryModel class
+//
 function GeometryModel(shaderId, geometryRef, option)
 {
   	// parent class
-  	ObjectBase.call(this, shaderId, true, option);
+  	ObjectBase.call(this, shaderId, option);
 
   	// parameter
   	this.geometryRef = geometryRef;
-
-
 }
 // inherits class
 Util.inherits(GeometryModel, ObjectBase);
@@ -20,24 +21,28 @@ GeometryModel.prototype.isLoadCompleted = function isLoadCompleted()
 }
 GeometryModel.prototype.callbackCompleted = function callbackCompleted()
 {
-	console.log("callbackCompleted:", this.geometryRef.resourceName);
-
-	var data = this.geometryRef.modelParts[0].geometryData;
+	var data = this.geometryRef.model_parts[0].geometryData;
+	// position
 	this.setLocalPositionVertices(data.position.subarray(0));
+	// normal
   	this.normal = data.normal.subarray(0);
+  	// vertex count
   	this.setVertexCount(this.normal.length / 3);
-
+  	// now, we already do not need
   	delete(this.geometryRef);
+
+  	// create the vbo
+  	this.createVBO(this.getVBOAttributes());
 }
 
 GeometryModel.prototype.getVBOAttributes = function getVBOAttributes()
 {
 	// make array for color data
-	var color = Util.increaseArrayElement(this.getColor(), this.getVertexCount());
+	var color = Util.increaseElement(this.getColor(), this.getVertexCount());
 	return [this.getLocalPositionVertices(), this.normal, color];
 }
 
-GeometryModel.prototype.draw = function draw(gl, shader, matrices, opt)
+GeometryModel.prototype.draw = function draw(shader, matrices, opt)
 {
 	// calculate the matrix
 	Adp.Mtx4.translate(matrices.m, matrices.m, this.getPosition());
@@ -49,19 +54,18 @@ GeometryModel.prototype.draw = function draw(gl, shader, matrices, opt)
 	Adp.Mtx4.multiply(matrices.m, matrices.pv, matrices.m);
 	
 	// passing the shader paramter
-	this.getBuffer().setAttribute(
-		gl,
-		shader.getAttributeLocation(), 
+	this.getBuffer().bindAttribute(
+		shader.getAttributeLocations(), 
 		shader.getAttributeStride());
-	shader.setMVPMatrix(gl, matrices.m);
-	shader.setDirectionLight(gl, Global.LIGHT_DIRECTION);
-	shader.setIsUseLight(gl, true);
-	shader.setAmbientColor(gl, opt.selected ? Global.AMBIENT_COLOR_SELECTED : Global.AMBIENT_COLOR);
+	shader.setMVPMatrix(matrices.m);
+	shader.setDirectionLight(CommonManager.LIGHT_DIRECTION);
+	shader.setIsUseLight(true);
+	shader.setAmbientColor(opt.selected ? CommonManager.AMBIENT_COLOR_SELECTED : CommonManager.AMBIENT_COLOR);
 	// draw
-	gl.drawArrays(gl.TRIANGLES, 0, this.getVertexCount());
+	Adp.GL.drawTriangles(0, this.getVertexCount());
 } 
 
-GeometryModel.prototype.drawForObjectPicking = function drawForObjectPicking(gl, shader, matrices)
+GeometryModel.prototype.drawForObjectPicking = function drawForObjectPicking(shader, matrices)
 {
 	// calculate the matrix
 	Adp.Mtx4.translate(matrices.m, matrices.m, this.getPosition());
@@ -71,11 +75,10 @@ GeometryModel.prototype.drawForObjectPicking = function drawForObjectPicking(gl,
 	Adp.Mtx4.scale(matrices.m, matrices.m, this.getScale());
 	Adp.Mtx4.multiply(matrices.m, matrices.pv, matrices.m);
 	// passing the shader paramter
-	this.getBuffer().setAttribute(
-		gl,
-		[shader.getAttributeLocation()[0]], 
+	this.getBuffer().bindAttribute(
+		[shader.getAttributeLocations()[0]], 
 		[shader.getAttributeStride()[0]]);
-	shader.setMVPMatrix(gl, matrices.m);
+	shader.setMVPMatrix(matrices.m);
 	// draw
-	gl.drawArrays(gl.TRIANGLES, 0, this.getVertexCount());
+	Adp.GL.drawTriangles(0, this.getVertexCount());
 } 

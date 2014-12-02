@@ -1,37 +1,35 @@
 //
-// ShaderLine
+// ShaderLine class
 //
-function ShaderLine(gl, program) {
-
-    this.attributeLocation = []
-    this.attributeLocation[0] = gl.getAttribLocation(program, 'position');
-    this.attributeLocation[1] = gl.getAttribLocation(program, 'color');
-	this.attributeStride = [];
-    this.attributeStride[0] = 3;
-    this.attributeStride[1] = 4;
-	this.uniformLocation = [];
-    this.uniformLocation[0] = gl.getUniformLocation(program, 'mvpMatrix');
+function ShaderLine(program) {
+	// attribute locatoins
+    this.attributeLocations = Adp.GL.getAttributeLocations(program, ["position", "color"]);
+    // attribute stride
+	this.attributeStride 	= [3, 4];
+	// uniform locations
+	this.uniformLocations   = Adp.GL.getUniformLocations(program, ["mvpMatrix"]);
+	// program object
 	this.program = program;
 
 }
 
-ShaderLine.prototype.getAttributeLocation = function getAttributeLocation()
+ShaderLine.prototype.getAttributeLocations = function getAttributeLocations()
 {
-	return this.attributeLocation;
+	return this.attributeLocations;
 }
 ShaderLine.prototype.getAttributeStride = function getAttributeStride()
 {
 	return this.attributeStride;
 }
-ShaderLine.prototype.getUniformLocation = function getUniformLocation()
+ShaderLine.prototype.getUniformLocations = function getUniformLocations()
 {
-	return this.uniformLocation;
+	return this.uniformLocations;
 }
 ShaderLine.prototype.getProgram = function getProgram()
 {
     return this.program;
 }
-ShaderLine.prototype.setMVPMatrix = function setMVPMatrix(gl, matrix)
+ShaderLine.prototype.setMVPMatrix = function setMVPMatrix(matrix)
 {
-	gl.uniformMatrix4fv(this.getUniformLocation()[0], false, matrix);
+	Adp.GL.uniformMatrix4fv(this.uniformLocations[0], matrix);
 }

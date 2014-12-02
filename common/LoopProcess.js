@@ -1,17 +1,17 @@
+//
+// LoopProcess class
+//
 function LoopProcess(fps)
 {
 	this.t = $.now();
 	this.fps = fps;
 	this.currentProcessTime = 0;
-	this.currentFrameTime = 0;
-	this.timerId = null;
-
 }
 
 LoopProcess.prototype.loop = function loop(mainProcess)
 {
 	var _this = this;
-	(function f(){
+	(function loopProcess(){
 		// update current time
 		_this.t = $.now();
 		// do main process
@@ -19,8 +19,8 @@ LoopProcess.prototype.loop = function loop(mainProcess)
 
 		// calculate overtime from processtime
 		_this.currentProcessTime = $.now() - _this.t;
-		_this.currentFrameTime = _this.fps - _this.currentProcessTime;
+		var currentLeftOverTime = _this.fps - _this.currentProcessTime;
 		// recursion
-		setTimeout(f, _this.currentFrameTime);
+		setTimeout(loopProcess, currentLeftOverTime);
 	})();
 }

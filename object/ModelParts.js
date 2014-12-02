@@ -1,13 +1,13 @@
 //
 // ModelParts class
 //
-function ModelParts(gl, shaderId, modelPartsData, option)
+function ModelParts(shaderId, modelPartsData, option)
 {
-	// get option
+	// gets a shader option
 	var shader_option = {
 		drawable: undefined,
 		uniforms: undefined
-	}
+	};
 	if (!Util.isUndefined(option) && !Util.isUndefined(option.shader)) {
 		var idx = Object.keys(option.shader).filter(function(elem) {
 			return modelPartsData.geometryName == option.shader[elem].name;
@@ -16,14 +16,13 @@ function ModelParts(gl, shaderId, modelPartsData, option)
 	}
 
 	// shader id
-	// console.log(modelPartsData.geometryName)
 	var sid = shaderId;
 	if (!sid) {
 		sid = shader_option.id;
 	}
 	Util.assert(sid != null, "shader id is null.");
   	// parent class
-  	ObjectBase.call(this, sid, true);
+  	ObjectBase.call(this, sid);
 
   	// parameter
 	this.geometryName 		= modelPartsData.geometryName;
@@ -39,29 +38,23 @@ function ModelParts(gl, shaderId, modelPartsData, option)
 	var material = this.geometryData.material;
 	if (material != null){
 		material.imageNames.forEach(function(elem, i){
-			var texture = gl.createTexture();
 			var image = new Image();
 			var loadCompleted = this.loadCompleted;
+			var textures = this.textures;
 			image.onload = function() { 
-				gl.bindTexture(gl.TEXTURE_2D, texture);
-				gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-				gl.generateMipmap(gl.TEXTURE_2D);
-				gl.bindTexture(gl.TEXTURE_2D, null);
+				var texture = Adp.GL.createTexture(this);
 				loadCompleted[i] = true;
+				textures.push(texture);
 			}
 			image.src = "assets/image/" + elem;
-			this.textures.push(texture);
 			this.loadCompleted.push(false);
 		}, this);
 	}
 	// parameter
-	// Util.fillUndefined(opt, {});
-	// this.setPosition(position);
-	// this.setColor([1.0, 1.0, 0.0, 1.0]);
-	// this.setScale([2, 2, 2]);
-	// this.setIndex(this.sphere.i);
+
+	// create a buffer object
+	this.getBuffer().createVBO(this.getVBOAttributes());
+	// ibo
 
 }
 // inherits class
@@ -71,7 +64,6 @@ ModelParts.prototype.getGeometeryName = function getGeometeryName()
 {
 	return this.geometryName;
 }
-
 ModelParts.prototype.isLoadCompleted = function isLoadCompleted()
 {
 	// return true if loadCompleted is empty
@@ -79,25 +71,13 @@ ModelParts.prototype.isLoadCompleted = function isLoadCompleted()
 		return elem;
 	});
 }
-ModelParts.prototype.createVBO = function createVBO(gl)
-{
-	this.getBuffer().createVBO(gl, this.getVBOAttributes());
-}
-ModelParts.prototype.updateVBO = function updateVBO(gl)
-{
-	this.getBuffer().updateVBO(gl, this.getVBOAttributes());
-}
-ModelParts.prototype.createIBO = function createIBO(gl)
-{
-}
-
 ModelParts.prototype.getVBOAttributes = function getVBOAttributes()
 {
 	var geo = this.geometryData;
 	var p = geo.position;
 	var n = geo.normal;
 	if (geo.color == null){
-		var c = Util.increaseArrayElement(this.getColor(), this.getVertexCount());
+		var c = Util.increaseElement(this.getColor(), this.getVertexCount());
 	} else {
 		var c = [];
 		for(var i = 0, l = geo.color.length/3; i < l; ++i) {
@@ -117,54 +97,52 @@ ModelParts.prototype.getVBOAttributes = function getVBOAttributes()
 	}
 }
 
-ModelParts.prototype.draw = function draw(gl, shader, matrices, objOption, option)
+ModelParts.prototype.draw = function draw(shader, matrices, objOption, option)
 {
 	if (!this.drawable) 
 		return;
 
-	var shader_ = shader;
-	if (shader_ == null) {
-		shader_ = objOption.shaderObject.switchShader(this.getShaderId());
+	var _shader = shader;
+	if (_shader == null) {
+		_shader = ShaderManager.switchShader(this.getShaderId());
 	}
 
 	// passing the shader paramter
-	this.getBuffer().setAttribute(
-		gl,
-		shader_.getAttributeLocation(), 
-		shader_.getAttributeStride());
+	this.getBuffer().bindAttribute(
+		_shader.getAttributeLocations(), 
+		_shader.getAttributeStride());
 	// passing the shader parameter
-	shader_.setMVPMatrix(gl, matrices.m);
+	_shader.setMVPMatrix(matrices.m);
 	switch(this.getShaderId()) {
 		case "shader_objtex": 
 			this.textures.forEach(function(texture, unit){
-				this.getBuffer().setTexture(gl, texture, unit);
-				shader_.setSampler(gl, unit);
+				Adp.GL.bindTexture(texture, unit);
+				_shader.setSampler( unit);
 			}, this);
 		case "shader_obj": 
-			shader_.setDirectionLight(gl, Util.isUndefined(option.lightDirection) ? Global.LIGHT_DIRECTION : option.lightDirection);
-			shader_.setAmbientColor(gl, objOption.selected ? Global.AMBIENT_COLOR_SELECTED : Global.AMBIENT_COLOR);
-			shader_.setIsUseLight(gl, true);
+			_shader.setDirectionLight(Util.isUndefined(option.lightDirection) ? CommonManager.LIGHT_DIRECTION : option.lightDirection);
+			_shader.setAmbientColor(objOption.selected ? CommonManager.AMBIENT_COLOR_SELECTED : CommonManager.AMBIENT_COLOR);
+			_shader.setIsUseLight(true);
 			break;			
 		case "shader_boundary": 
-			shader_.setObjectColor(gl, this.uniforms.color);
-			gl.drawArrays(gl.LINE_STRIP , 0, this.getVertexCount());
+			_shader.setObjectColor(CommonManager.BOUNDARY_COLOR);
+			Adp.GL.drawLineStrip(0, this.getVertexCount());
 			return;
 			break;
 	}
 	// draw
-	gl.drawArrays(gl.TRIANGLES, 0, this.getVertexCount());
+	Adp.GL.drawTriangles(0, this.getVertexCount());
 } 
 
-ModelParts.prototype.drawForObjectPicking = function drawForObjectPicking(gl, shader, matrices)
+ModelParts.prototype.drawForObjectPicking = function drawForObjectPicking(shader, matrices)
 {
 	if (!this.drawable) 
 		return;
 	// passing the position shader paramter
-	this.getBuffer().setAttribute(
-		gl,
-		[shader.getAttributeLocation()[0]], 
+	this.getBuffer().bindAttribute(
+		[shader.getAttributeLocations()[0]], 
 		[shader.getAttributeStride()[0]]);
 
 	// draw
-	gl.drawArrays(gl.TRIANGLES, 0, this.getVertexCount());
+	Adp.GL.drawTriangles(0, this.getVertexCount());
 } 

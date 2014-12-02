@@ -9,45 +9,59 @@
 	<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/3.17.2/build/cssreset/cssreset-min.css" />
 	<link rel="stylesheet" type="text/css" href="https://code.jquery.com/ui/1.11.1/themes/ui-darkness/jquery-ui.css" />
 	<link rel="stylesheet" type="text/css" href="main.css" />
-	<link rel="stylesheet" type="text/css" href="library/jquery_plugins_contextmenu/jquery.contextMenu.css" />
+	<link rel="stylesheet" type="text/css" href="external/jquery_plugins_contextmenu/jquery.contextMenu.css" />
 	<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
 	<script type="text/javascript" src="https://code.jquery.com/ui/1.11.1/jquery-ui.min.js"></script>
-	<script type="text/javascript" src="library/jquery_plugins_contextmenu/jquery.ui.position.js" ></script>
-	<script type="text/javascript" src="library/jquery_plugins_contextmenu/jquery.contextMenu.js" ></script>
-	<script type="text/javascript" src="library/gl-matrix-min.js" ></script>
+	<script type="text/javascript" src="external/jquery_plugins_contextmenu/jquery.ui.position.js" ></script>
+	<script type="text/javascript" src="external/jquery_plugins_contextmenu/jquery.contextMenu.js" ></script>
+	<script type="text/javascript" src="external/gl-matrix-min.js" ></script>
 	<script type="text/javascript" src="util/Util.js"></script>
+	<script type="text/javascript" src="library/LibraryAdapter.js"></script>
 	<script type="text/javascript" src="util/Loader.js"></script>
-	<script type="text/javascript" src="util/LibraryAdapter.js"></script>
 	<script type="text/javascript" src="util/Polygon.js"></script>
 	<script type="text/javascript" src="util/Plane.js"></script>
 	<script type="text/javascript" src="util/Intersect.js"></script>
 	<script type="text/javascript" src="util/Parser.js"></script>
-	<script type="text/javascript" src="Global.js"></script>
+	<script type="text/javascript" src="common/LoopProcess.js"></script>
+	<script type="text/javascript" src="common/CommonManager.js"></script>
+	<script type="text/javascript" src="object/ObjectManager.js"></script>
+	<script type="text/javascript" src="event/EventManager.js"></script>
+	<script type="text/javascript" src="camera/CameraManager.js"></script>
+	<script type="text/javascript" src="control/Mouse.js"></script>
+	<script type="text/javascript" src="control/ControlManager.js"></script>
 	<script type="text/javascript" src="object/ObjectBase.js"></script>
 	<script type="text/javascript" src="object/EmptyObject.js"></script>
+	<script type="text/javascript" src="camera/Camera.js"></script>
 	<script type="text/javascript" src="object/GLBuffer.js"></script>
 	<script type="text/javascript" src="object/GeometryObject.js"></script>
-	<script type="text/javascript" src="object/Geometry.js"></script>
+	<script type="text/javascript" src="object/GeometryManager.js"></script>
 	<script type="text/javascript" src="object/ModelParts.js"></script>
 	<script type="text/javascript" src="object/Model.js"></script>
-	<script type="text/javascript" src="object/LoopProcess.js"></script>
 	<script type="text/javascript" src="object/Plane.js"></script>
+	<script type="text/javascript" src="object/Plane2D.js"></script>
 	<script type="text/javascript" src="object/Point.js"></script>
 	<script type="text/javascript" src="object/GridLine.js"></script>
 	<script type="text/javascript" src="object/Line.js"></script>
-	<script type="text/javascript" src="object/Camera.js"></script>
-	<script type="text/javascript" src="object/MouseState.js"></script>
 	<script type="text/javascript" src="object/ObjectMoveRange.js"></script>
-	<script type="text/javascript" src="object/ObjectList.js"></script>
-	<script type="text/javascript" src="shader/Shader.js"></script>
+	<script type="text/javascript" src="shader/ShaderManager.js"></script>
 	<script type="text/javascript" src="shader/ShaderBoundary.js"></script>
 	<script type="text/javascript" src="shader/ShaderObject.js"></script>
+	<script type="text/javascript" src="shader/ShaderObjectTexture.js"></script>
 	<script type="text/javascript" src="shader/ShaderLine.js"></script>
 	<script type="text/javascript" src="shader/ShaderPoint.js"></script>
-	<script type="text/javascript" src="EventHandler.js"></script>
-	<script type="text/javascript" src="ContextMenu.js"></script>
+	<script type="text/javascript" src="shader/Shader2DPlane.js"></script>
+	<script type="text/javascript" src="event/ContextMenu.js"></script>
 	<script type="text/javascript" src="main.js"></script>
 	<!-- vertex shader -->
+	<script id="vs_2dplane" type="x-shader/x-vertex">
+		attribute vec2 position;
+		attribute vec2 textureCoord;
+		varying vec2 vTextureCoord;
+		void main(void){
+			vTextureCoord = textureCoord;
+		    gl_Position  = vec4(position, 0.0, 1.0);
+		}		
+	</script>
 	<script id="vs_point" type="x-shader/x-vertex">
 		attribute vec3  position;
 		attribute vec4  color;
@@ -121,7 +135,19 @@
 			gl_Position = mvpMatrix * vec4(position, 1.0);
 		}
 	</script>
+
+
 	<!-- flagment shader -->
+	<script id="fs_2dplane" type="x-shader/x-fragment">
+		precision mediump float;
+		uniform vec4 uColor;
+		uniform sampler2D uSampler;
+		varying vec2 vTextureCoord;
+		void main(void){
+			vec4 tex_color = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+		    gl_FragColor = tex_color * uColor;
+		}
+	</script>
 	<script id="fs_obj" type="x-shader/x-fragment">
 		precision mediump float;
 		uniform vec3 lightDirection;
@@ -161,7 +187,7 @@
 		precision mediump float;
 		varying vec4 vColor;
 		void main(void){
-		    gl_FragColor = vColor;
+			gl_FragColor = vColor;
 		}
 	</script>
 
@@ -173,7 +199,7 @@
 
 		<!-- canvas area -->
 		<div id="canvas_area">
-			<canvas id="canvas" width = "640" height = "480" oncontextmenu="return false;"></canvas>
+			<canvas id="canvas" oncontextmenu="return false;"></canvas>
 		</div>
 		<!-- end canvas area -->
 

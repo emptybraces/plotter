@@ -98,7 +98,7 @@ Intersect.existPointInPolygon3 = function existPointInPolygon3(
 	point)
 {
 	// polygon position
-	var position = Util.convertArraySingle2Vec3(polygonVertices);
+	var position = Util.convertArray2Vec3(polygonVertices);
 	// store a cross result
 	var c1 = Adp.Vec3.create();
 	var c2 = Adp.Vec3.create();
@@ -136,7 +136,7 @@ Intersect.existPointInPolygon4 = function existPointInPolygon4(
 	point)
 {
 	// polygon position
-	var position = Util.convertArraySingle2Vec3(polygonVertices);
+	var position = Util.convertArray2Vec3(polygonVertices);
 	// store a cross result
 	var c1 = Adp.Vec3.create();
 	var c2 = Adp.Vec3.create();

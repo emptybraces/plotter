@@ -1,61 +1,47 @@
-function ShaderObject(gl, program, args) {
-
-    this.attributeLocation = []
-    this.attributeLocation[0] = gl.getAttribLocation(program, 'position');
-    this.attributeLocation[1] = gl.getAttribLocation(program, 'normal');
-    this.attributeLocation[2] = gl.getAttribLocation(program, 'color');
-	this.attributeStride = [];
-    this.attributeStride[0] = 3;
-    this.attributeStride[1] = 3;
-    this.attributeStride[2] = 4;
-	this.uniformLocation = [];
-    this.uniformLocation[0] = gl.getUniformLocation(program, 'mvpMatrix');
-    this.uniformLocation[1] = gl.getUniformLocation(program, 'lightDirection');
-    this.uniformLocation[2] = gl.getUniformLocation(program, 'ambientColor');
-    this.uniformLocation[3] = gl.getUniformLocation(program, 'isUseLight');
+//
+// ShaderObject class
+//
+function ShaderObject(program) {
+    // attribute locations
+    this.attributeLocations = Adp.GL.getAttributeLocations(program, ["position", "normal", "color"]);
+    // attribute stride
+	this.attributeStride    = [3, 3, 4];
+    // uniform locations 
+	this.uniformLocations   = Adp.GL.getUniformLocations(program
+        , ["mvpMatrix", "lightDirection", "ambientColor", "isUseLight"]);
+    // program
 	this.program = program;
-
-    var useTexture = args[0];
-    if (useTexture === true) {
-        this.attributeLocation[3]   = gl.getAttribLocation(program, 'textureCoord');
-        this.attributeStride[3]     = 2;
-        this.uniformLocation[4]     = gl.getUniformLocation(program, 'uSampler');
-    }
 }
 
-ShaderObject.prototype.getAttributeLocation = function getAttributeLocation()
+ShaderObject.prototype.getAttributeLocations = function getAttributeLocations()
 {
-	return this.attributeLocation;
+	return this.attributeLocations;
 }
 ShaderObject.prototype.getAttributeStride = function getAttributeStride()
 {
 	return this.attributeStride;
 }
-ShaderObject.prototype.getUniformLocation = function getUniformLocation()
+ShaderObject.prototype.getUniformLocations = function getUniformLocations()
 {
-	return this.uniformLocation;
+	return this.uniformLocations;
 }
 ShaderObject.prototype.getProgram = function getProgram()
 {
     return this.program;
 }
-ShaderObject.prototype.setMVPMatrix = function setMVPMatrix(gl, matrix)
+ShaderObject.prototype.setMVPMatrix = function setMVPMatrix(matrix)
 {
-	gl.uniformMatrix4fv(this.getUniformLocation()[0], false, matrix);
+	Adp.GL.uniformMatrix4fv(this.uniformLocations[0], matrix);
 }
-ShaderObject.prototype.setDirectionLight = function setDirectionLight(gl, direction)
+ShaderObject.prototype.setDirectionLight = function setDirectionLight(direction)
 {
-	gl.uniform3fv(this.getUniformLocation()[1], direction);
+	Adp.GL.uniform3fv(this.uniformLocations[1], direction);
 }
-ShaderObject.prototype.setAmbientColor = function setAmbientColor(gl, ambient)
+ShaderObject.prototype.setAmbientColor = function setAmbientColor(ambient)
 {
-    gl.uniform4fv(this.getUniformLocation()[2], ambient);
+    Adp.GL.uniform4fv(this.uniformLocations[2], ambient);
 }
-ShaderObject.prototype.setIsUseLight = function setIsUseLight(gl, use)
+ShaderObject.prototype.setIsUseLight = function setIsUseLight(boolian)
 {
-    gl.uniform1i(this.getUniformLocation()[3], use);
-}
-ShaderObject.prototype.setSampler = function setSampler(gl, unit)
-{
-    gl.uniform1i(this.getUniformLocation()[4], unit);
+    Adp.GL.uniform1i(this.uniformLocations[3], boolian);
 }

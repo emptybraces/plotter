@@ -1,52 +1,47 @@
 //
-// ShaderPoint
+// ShaderPoint class
 //
-function ShaderPoint(gl, program) {
-
-    this.attributeLocation = []
-    this.attributeLocation[0] = gl.getAttribLocation(program, 'position');
-    this.attributeLocation[1] = gl.getAttribLocation(program, 'color');
-	this.attributeStride = [];
-    this.attributeStride[0] = 3;
-    this.attributeStride[1] = 4;
-	this.uniformLocation = [];
-    this.uniformLocation[0] = gl.getUniformLocation(program, 'mvpMatrix');
-    this.uniformLocation[1] = gl.getUniformLocation(program, 'pointSize');
-    this.uniformLocation[2] = gl.getUniformLocation(program, 'isObjectPicking');
-    this.uniformLocation[3] = gl.getUniformLocation(program, 'objectColor');
-	this.program = program;
-
+function ShaderPoint(program) {
+    // attribute locations
+    this.attributeLocations = Adp.GL.getAttributeLocations(program, ["position", "color"]);
+    // attribute stride
+    this.attributeStride    = [3, 4];
+    // uniform locations 
+    this.uniformLocations   = Adp.GL.getUniformLocations(program
+        , ["mvpMatrix", "pointSize", "isObjectPicking", "objectColor"]);
+    // program
+    this.program = program;
 }
 
-ShaderPoint.prototype.getAttributeLocation = function getAttributeLocation()
+ShaderPoint.prototype.getAttributeLocations = function getAttributeLocations()
 {
-	return this.attributeLocation;
+    return this.attributeLocations;
 }
 ShaderPoint.prototype.getAttributeStride = function getAttributeStride()
 {
-	return this.attributeStride;
+    return this.attributeStride;
 }
-ShaderPoint.prototype.getUniformLocation = function getUniformLocation()
+ShaderPoint.prototype.getUniformLocations = function getUniformLocations()
 {
-	return this.uniformLocation;
+    return this.uniformLocations;
 }
 ShaderPoint.prototype.getProgram = function getProgram()
 {
     return this.program;
 }
-ShaderPoint.prototype.setMVPMatrix = function setMVPMatrix(gl, matrix)
+ShaderPoint.prototype.setMVPMatrix = function setMVPMatrix(matrix)
 {
-	gl.uniformMatrix4fv(this.getUniformLocation()[0], false, matrix);
+    Adp.GL.uniformMatrix4fv(this.uniformLocations[0], matrix);
 }
-ShaderPoint.prototype.setPointSize = function setPointSize(gl, pointSize)
+ShaderPoint.prototype.setPointSize = function setPointSize(pointSize)
 {
-	gl.uniform1f(this.getUniformLocation()[1], pointSize);
+	Adp.GL.uniform1f(this.uniformLocations[1], pointSize);
 }
-ShaderPoint.prototype.setIsObjectPicking = function setIsObjectPicking(gl, is)
+ShaderPoint.prototype.setIsObjectPicking = function setIsObjectPicking(boolean)
 {
-    gl.uniform1i(this.getUniformLocation()[2], is);
+    Adp.GL.uniform1i(this.uniformLocations[2], boolean);
 }
-ShaderPoint.prototype.setObjectColor = function setObjectColor(gl, color)
+ShaderPoint.prototype.setObjectColor = function setObjectColor(color)
 {
-    gl.uniform4fv(this.getUniformLocation()[3], color);
+    Adp.GL.uniform4fv(this.uniformLocations[3], color);
 }

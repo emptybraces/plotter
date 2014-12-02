@@ -97,9 +97,9 @@ var Parser = function Parser(){
 	{
 		var out = Adp.Vec3.create();
 		// caluculate
-		Util.convertArraySingle2Vec3(positions).forEach(function(elem, i) {
+		Util.convertArray2Vec3(positions).forEach(function(elem, i) {
 			out = Adp.Vec3.create();
-	   		Adp.Vec3.rotateX(out, elem, [0, 0, 0], Deg2Rad * -90);
+	   		Adp.Vec3.rotateX(out, elem, [0, 0, 0], Util.DEG2RAD * -90);
 	   		positions[i*3+0] = out[0]; 
 	   		positions[i*3+1] = out[1];
 	   		positions[i*3+2] = out[2];
@@ -109,9 +109,9 @@ var Parser = function Parser(){
 
 		// normals
 		if (!Util.isUndefined(normals) && normals != null) {
-			Util.convertArraySingle2Vec3(normals).forEach(function(elem, i) {
+			Util.convertArray2Vec3(normals).forEach(function(elem, i) {
 				out = Adp.Vec3.create();
-		   		Adp.Vec3.rotateX(out, elem, [0, 0, 0], Deg2Rad * -90);
+		   		Adp.Vec3.rotateX(out, elem, [0, 0, 0], Util.DEG2RAD * -90);
 		   		normals[i*3+0] = out[0]; 
 		   		normals[i*3+1] = out[1];
 		   		normals[i*3+2] = out[2];
@@ -120,7 +120,7 @@ var Parser = function Parser(){
 		}
 		// texcoord
 		if (!Util.isUndefined(texcoords) && texcoords != null) {
-			Util.convertArraySingle2Vec2(texcoords).forEach(function(elem, i) {
+			Util.convertArray2Vec2(texcoords).forEach(function(elem, i) {
 				out = Adp.Vec2.create(elem[0], elem[1]);
 		   		texcoords[i*2+1] = 1 - out[1];
 			});

@@ -7,15 +7,31 @@ function GridLine(shaderId)
     	return new GridLine(shaderId);
   	}
   	// parent class
-  	ObjectBase.call(this, shaderId, true);
+  	ObjectBase.call(this, shaderId);
+
+  	// private properties
+  	this.gridline_interval	= CommonManager.DEFAULT_GRIDLINE_INTERVAL;
+	this.gridline_length 	= CommonManager.DEFAULT_GRIDLINE_LENGTH;
 
     // calculate line vertex
-    this.calculate(Global.GRIDLINE_INTERVAL, Global.GRIDLINE_LENGTH);
-
+    this.calculate(CommonManager.DEFAULT_GRIDLINE_INTERVAL, CommonManager.DEFAULT_GRIDLINE_LENGTH);
+    // create vbo
+    this.getBuffer().createVBO(this.getVBOAttributes());
+   	this.isBufferUpdate(false);
 }
 
 // inherits class
 Util.inherits(GridLine, ObjectBase);
+
+// getter / setter
+GridLine.prototype.getGridLineInterval = function getGridLineInterval() {return this.gridline_interval;}
+GridLine.prototype.getGridLineLength = function gsetGridLineLength() {return this.gridline_length;}
+GridLine.prototype.setGridlineInterval = function setGridLineInterval(val) {this.gridline_interval = val; return this;}
+GridLine.prototype.setGridLineLength = function setGridLineLength(val) {this.gridline_length = val; return this;}
+GridLine.prototype.getVBOAttributes = function getVBOAttributes(){
+	return [this.getLocalPositionVertices(),
+			Util.increaseElement(this.getColor(), this.getVertexCount())];
+}
 
 //
 // calculate line vertex
@@ -44,24 +60,15 @@ GridLine.prototype.calculate = function calculate(interval, length)
 	this.isBufferUpdate(true);
 }
 //
-//
-//
-GridLine.prototype.getVBOAttributes = function getVBOAttributes()
-{
-	return [this.getLocalPositionVertices(),
-			Util.increaseArrayElement(this.getColor(), this.getVertexCount())];
-}
-//
 // draw
 //
-GridLine.prototype.draw = function draw(gl, shader, matrices)
+GridLine.prototype.draw = function draw(shader, matrices)
 {
-	this.buffer.setAttribute(
-		gl,
-		shader.getAttributeLocation(), 
+	this.getBuffer().bindAttribute(
+		shader.getAttributeLocations(), 
 		shader.getAttributeStride());
 
-	shader.setMVPMatrix(gl, matrices.pv);
-	gl.drawArrays(gl.LINES, 0, this.getVertexCount());
+	shader.setMVPMatrix(matrices.pv);
+	Adp.GL.drawLines(0, this.getVertexCount());
 }
 

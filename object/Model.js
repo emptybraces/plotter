@@ -1,70 +1,51 @@
 //
 // Model
 //
-function Model(gl, shaderId, resourceName, option)
+function Model(shaderId, resourceName, option)
 {
   	// parent class
-  	ObjectBase.call(this, shaderId, false, option);
+  	ObjectBase.call(this, shaderId, option);
 
 	// loading model data
-	this.modelParts		= [];
+	this.model_parts = [];
 	Loader.loadModel(
 		resourceName, 
 		this, 
 		function loadCompleted(resultData, modelType) {
 			resultData.forEach(function(elem){
-				this.modelParts.push(new ModelParts(gl, shaderId, elem, option));
+				this.model_parts.push(new ModelParts(shaderId, elem, option));
 			}, this);
 		}
 	);
 	// parameter
 	this.resourceName = resourceName;
-	// Util.fillUndefined(opt, {});
-	// this.setPosition(position);
-	// this.setColor([1.0, 1.0, 0.0, 1.0]);
-	// this.setScale([2, 2, 2]);
-	// this.setIndex(this.sphere.i);
 }
 // inherits class
 Util.inherits(Model, ObjectBase);
 
 Model.prototype.isLoadCompleted = function isLoadCompleted()
 {
-	if (this.modelParts.length == 0) {
+	if (this.model_parts.length == 0) {
 		return false;
 	}
-	return this.modelParts.every(function(elem){
+	return this.model_parts.every(function(elem){
 		return elem.isLoadCompleted();
-	})
+	});
 }
-Model.prototype.callbackCompleted = function callbackCompleted(gl)
+Model.prototype.callbackCompleted = function callbackCompleted()
 {
-	console.log("callbackCompleted:", this.resourceName);
+	Util.info("callbackCompleted:", this.resourceName);
 	// this.setVertexCount(this.modelData[0].geometryData.position.length/3);
 }
 
-Model.prototype.createVBO = function createVBO(gl /*, attributes*/)
+Model.prototype.updateVBO = function updateVBO()
 {
-	this.modelParts.forEach(function(elem){
-		elem.createVBO(gl);
-	})
+	this.model_parts.forEach(function(elem){
+		elem.updateVBO(elem.getVBOAttributes());
+	});
 }
-Model.prototype.updateVBO = function updateVBO(gl /*, attributes*/)
-{
-	this.modelParts.forEach(function(elem){
-		elem.updateVBO(gl);
-	})
-}
-Model.prototype.createIBO = function createIBO(gl /*, index*/)
-{
-	this.modelParts.forEach(function(elem){
-		elem.createIBO(gl);
-	})
-}
-Model.prototype.getVBOAttributes = function getVBOAttributes(){}
-Model.prototype.getIndex = function getIndex(){}
 
-Model.prototype.draw = function draw(gl, shader, matrices, objOption)
+Model.prototype.draw = function draw(shader, matrices, objOption)
 {
 	var option = {};
 	// calculate the matrix
@@ -72,21 +53,21 @@ Model.prototype.draw = function draw(gl, shader, matrices, objOption)
 	var r = this.getRotate();
 	if (r != null) {
 		Adp.Mtx4.rotate(matrices.m, matrices.m, r.rad, r.axis);
-		// light direction
+		// light direction rotate
 		option.lightDirection = Adp.Vec3.create();
 		Adp.Mtx4.invert(matrices.inv, matrices.m);
-		Adp.Mtx4.multiplyVec3(option.lightDirection, matrices.inv, Global.LIGHT_DIRECTION);
+		Adp.Mtx4.multiplyVec3(option.lightDirection, matrices.inv, CommonManager.LIGHT_DIRECTION);
 	}
 	Adp.Mtx4.scale(matrices.m, matrices.m, this.getScale());
 	Adp.Mtx4.multiply(matrices.m, matrices.pv, matrices.m);
 
-	// draw children
-	this.modelParts.forEach(function(elem){
-		elem.draw(gl, shader, matrices, objOption, option);
+	// draw a children
+	this.model_parts.forEach(function(elem){
+		elem.draw(shader, matrices, objOption, option);
 	})
 } 
 
-Model.prototype.drawForObjectPicking = function drawForObjectPicking(gl, shader, matrices, objOption)
+Model.prototype.drawForObjectPicking = function drawForObjectPicking(shader, matrices, objOption)
 {
 	// calculate the matrix
 	Adp.Mtx4.translate(matrices.m, matrices.m, this.getPosition());
@@ -97,9 +78,9 @@ Model.prototype.drawForObjectPicking = function drawForObjectPicking(gl, shader,
 	Adp.Mtx4.scale(matrices.m, matrices.m, this.getScale());
 	Adp.Mtx4.multiply(matrices.m, matrices.pv, matrices.m);
 	// passing the shader parameter
-	shader.setMVPMatrix(gl, matrices.m);
+	shader.setMVPMatrix(matrices.m);
 	// draw children
-	this.modelParts.forEach(function(elem){
-		elem.drawForObjectPicking(gl, shader, matrices, objOption);
+	this.model_parts.forEach(function(elem){
+		elem.drawForObjectPicking(shader, matrices, objOption);
 	})
 } 

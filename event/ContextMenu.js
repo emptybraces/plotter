@@ -1,31 +1,34 @@
-function InitializeContextMenu(e){
+//
+// context menu construction
+//
+function InitializeContextMenu(){
 
     //
     // add object handler
     //
-    function addObject(e, geometryId)
+    function addObject(geometryId)
     {
-        e.objMgr.add(Geometry.get(geometryId));
+        ObjectManager.add(GeometryManager.get(geometryId));
     }
     //
     // copy object handler
     //
-    function copyObject(e)
+    function copyObject()
     {
-        // e.objMgr.copy(e.objMgr.getSelected());
+        // ObjectManager.copy(ObjectManager.getSelected());
     }
     //
     // delete object handler
     //
-    function deleteObject(e) {
-        e.objMgr.getSelected().forEach(function(elem){
-            e.objMgr.remove(elem);
+    function deleteObject() {
+        ObjectManager.getSelected().forEach(function(elem){
+            ObjectManager.remove(elem);
         });
     };
     //
     // show context menu event
     //
-    function showContextMenu(e, ctx, opt) {
+    function showContextMenu(ctx, opt) {
         // this is the trigger element
         // var $this = this;
         // import states from data store
@@ -33,7 +36,7 @@ function InitializeContextMenu(e){
         // initialize parameter
         data.MoveTypeSelection = typeof data.MoveTypeSelection  !== 'undefined'
                                  ? data.MoveTypeSelection : 1;
-        data.isObjectSelected = e.objMgr.isSelected();
+        data.isObjectSelected = ObjectManager.isSelected();
         $.contextMenu.setInputValues(opt, data);
         // this basically fills the input commands from an object
         // like {name: "foo", yesno: true, radio: "3", …}
@@ -41,43 +44,42 @@ function InitializeContextMenu(e){
     //
     // hide contextmenu event
     //
-    function hideContextMenu(e, ctx, opt) {
+    function hideContextMenu(ctx, opt) {
         // this is the trigger element
         // var $this = this;
         // export states to data store
         var data = $.contextMenu.getInputValues(opt, ctx.data());
         // console.log($this.data())
         switch (data.MoveTypeSelection){
-            case "1": Global.OBJECT_MOVE_TYPE = 'XY'; break;
-            case "2": Global.OBJECT_MOVE_TYPE = 'XZ'; break;
-            case "3": Global.OBJECT_MOVE_TYPE = 'YZ'; break;
+            case "1": CommonManager.OBJECT_MOVE_TYPE = 'XY'; break;
+            case "2": CommonManager.OBJECT_MOVE_TYPE = 'XZ'; break;
+            case "3": CommonManager.OBJECT_MOVE_TYPE = 'YZ'; break;
         }
-        var objMgr = e.objMgr;
-        objMgr.getName("ObjectMoveRangeSquare")[0].ins.updatePosition(objMgr);
+        ObjectManager.getObjectByName("ObjectMoveRangeSquare")[0].ins.updatePosition();
         // this basically dumps the input commands' values to an object
         // like {name: "foo", yesno: true, radio: "3", …}
     }
 
     $.contextMenu({
-        selector: '#canvas', 
-        callback: function(key, options)
+        selector : '#canvas', 
+        callback : function(key, options)
         {
             switch (key){
                 case "add_sphere":
-                    addObject(e, "sphere");
+                    addObject("sphere");
                     break;
                 case "add_cube":
-                    addObject(e, "cube");
+                    addObject("cube");
                     break;
                 case "copy":
-                    copyObject(e);
+                    copyObject();
                     break;
                 case "delete":
-                    deleteObject(e);
+                    deleteObject();
                     break;
             }
         },
-        items: {
+        items : {
             isObjectSelected: {
                 name: "object selected", 
                 type: 'checkbox', 
@@ -115,10 +117,10 @@ function InitializeContextMenu(e){
         },
         events: {
             show: (function(opt){
-                showContextMenu(e, this, opt);
+                showContextMenu(this, opt);
             }),         
             hide: (function(opt){
-                hideContextMenu(e, this, opt);
+                hideContextMenu(this, opt);
             }),         
         }
     });
